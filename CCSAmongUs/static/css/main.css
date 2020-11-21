@@ -172,7 +172,9 @@ iframe {
   background: -webkit-linear-gradient(-135deg, #c850c0, #4158d0);
   background: -o-linear-gradient(-135deg, #c850c0, #4158d0);
   background: -moz-linear-gradient(-135deg, #c850c0, #4158d0);
-  background: #112d4e;
+  background: black;
+  background-image: url('../images/space.png');
+  background-size: cover; 
 }
 
 .wrap-login100 {
@@ -188,7 +190,7 @@ iframe {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 177px 130px 33px 95px;
+  padding: 100px 130px 33px 95px;
 }
 
 /*------------------------------------------------------------------
