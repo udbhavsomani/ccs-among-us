@@ -24,7 +24,6 @@ class RegisterationForm(FlaskForm):
 			raise ValidationError('Sorry this email is taken, Please choose another one')
 
 class LoginForm(FlaskForm):
-	email = StringField('Email', validators=[DataRequired(), Email()])
+	teamname = StringField('Team Name', validators=[DataRequired()])
 	password = PasswordField('Password', validators=[DataRequired()])
-	remember = BooleanField('Remember Me')
 	submit = SubmitField('Login')

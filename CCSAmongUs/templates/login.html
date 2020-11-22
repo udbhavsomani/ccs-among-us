@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-	<form class="login100-form validate-form">
+	<form class="login100-form validate-form" method="POST">
+		{{ form.hidden_tag() }}
 		<span class="login100-form-title">
 			Member Login
 		</span>
 
-		<div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
-			<input class="input100" type="text" name="teamName" placeholder="Team Name">
+		<div class="wrap-input100 validate-input" data-validate = "Team Name is required">
+			{{ form.teamname(class="input100", placeholder=form.teamname.label.text)}}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -14,7 +15,7 @@
 		</div>
 
 		<div class="wrap-input100 validate-input" data-validate = "Password is required">
-			<input class="input100" type="password" name="pass" placeholder="Password">
+			{{ form.password(class="input100", placeholder=form.password.label.text)}}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-lock" aria-hidden="true"></i>
@@ -22,9 +23,7 @@
 		</div>
 		
 		<div class="container-login100-form-btn">
-			<button class="login100-form-btn">
-				Login
-			</button>
+			{{ form.submit(class="login100-form-btn") }}
 		</div>
 
 		<div class="text-center p-t-12">
