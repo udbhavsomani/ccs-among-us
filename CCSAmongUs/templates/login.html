@@ -7,7 +7,16 @@
 		</span>
 
 		<div class="wrap-input100 validate-input" data-validate = "Team Name is required">
-			{{ form.teamname(class="input100", placeholder=form.teamname.label.text)}}
+			{% if form.teamname.errors %}
+				{{ form.teamname(class="input100")}}
+					{% for error in form.teamname.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.teamname(class="input100", placeholder=form.teamname.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -15,7 +24,16 @@
 		</div>
 
 		<div class="wrap-input100 validate-input" data-validate = "Password is required">
-			{{ form.password(class="input100", placeholder=form.password.label.text)}}
+			{% if form.password.errors %}
+				{{ form.password(class="input100")}}
+					{% for error in form.password.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.password(class="input100", placeholder=form.password.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-lock" aria-hidden="true"></i>

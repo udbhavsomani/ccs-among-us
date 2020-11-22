@@ -27,6 +27,8 @@ var configs = (function() {
         touch_help: "Change file timestamps. If the file doesn't exist, it's created an empty one.",
         sudo_help: "Execute a command as the superuser.",
         hoe_help: "You single",
+        coins_help: "Displays your wallet",
+        send_help: "Used to send coins to another team",
         welcome: "Welcome to Among CCS! :)\nIn order for you to start customizing the texts, go to js/main.js and replace the texts located at the configs var.\nIn that same file, you can define all the fake files you want as well as their content. This files will appear on the sidenav.\nAlso, don't forget to change the colors on the css/main.css file as well as the website title on the index.html file.\nNow in order to get started, feel free to either execute the 'help' command or use the more user-friendly colored sidenav at your left.\nIn order to skip text rolling, double click/touch anywhere.",
         internet_explorer_warning: "NOTE: I see you're using internet explorer, this website won't work properly.",
         welcome_file_name: "welcome_message.txt",
@@ -34,6 +36,8 @@ var configs = (function() {
         reboot_message: "Preparing to reboot...\n\n3...\n\n2...\n\n1...\n\nRebooting...\n\n",
         permission_denied_message: "Unable to '<value>', permission denied.",
         sudo_message: "Unable to sudo using a web client.",
+        coins_message: "You currently have",
+        coins: "1000 🪙",
         hoe_message: "Get a side hoe",
         usage: "Usage",
         file: "file",
@@ -123,6 +127,8 @@ var main = (function() {
     var cmds = {
         LS: { value: "ls", help: configs.getInstance().ls_help },
         HOE: { value: "hoe", help: configs.getInstance().hoe_help },
+        COINS: { value: "coins", help: configs.getInstance().coins_help },
+        SEND: { value: "send", help: configs.getInstance().send_help },
         CAT: { value: "cat", help: configs.getInstance().cat_help },
         WHOAMI: { value: "whoami", help: configs.getInstance().whoami_help },
         DATE: { value: "date", help: configs.getInstance().date_help },
@@ -347,6 +353,12 @@ var main = (function() {
             case cmds.HOE.value:
                 this.hoe();
                 break;
+            case cmds.COINS.value:
+                this.coins();
+                break;
+            case cmds.SEND.value:
+                this.send();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
                 break;
@@ -375,6 +387,20 @@ var main = (function() {
 
     Terminal.prototype.hoe = function() {
         this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
+    }
+
+    Terminal.prototype.coins = function() {
+        this.type(configs.getInstance().coins_message, () => { this.type(configs.getInstance().coins, this.unlock.bind(this)); });
+    }
+
+    Terminal.prototype.send = function() {
+        this.type("Enter Number of coins to send:", () => {
+            var coins = window.prompt("Enter Coins");
+            this.type("Enter Recieving Team's Name:", () => {
+                var teamName = window.prompt("Enter Team Name");
+                this.type("Sent " + coins + " coins to " + teamName, this.unlock.bind(this));
+            });
+        });
     }
 
     Terminal.prototype.sudo = function() {

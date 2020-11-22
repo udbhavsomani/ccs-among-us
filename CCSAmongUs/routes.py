@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect
 from CCSAmongUs import app, db
-from CCSAmongUs.forms import RegisterationForm, LoginForm
+from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
 from CCSAmongUs.models import Team, User, Questions
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -14,9 +14,7 @@ def login():
 		team = Team.query.filter_by(teamname=form.teamname.data).first()
 		if team and team.password == form.password.data:
 			login_user(team)
-			return redirect(url_for('terminal'))
-		else:
-			flash('Unsuccessful attempt', 'danger')
+			return redirect(url_for('terminal'))			
 	return render_template('login.html', form=form)
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -34,15 +32,23 @@ def register():
 	return render_template('register.html', form=form)
 
 @login_required
-@app.route("/memberRegister")
+@app.route("/memberRegister", methods=['GET', 'POST'])
 def memberRegister():
-	form = RegisterationForm()
+	form = MemberRegisterForm()
+	if current_user.check:
+		return redirect(url_for('terminal'))
 	if form.validate_on_submit():
-		user = Team(teamname=form.teamname.data, email=form.email.data, password=form.password.data)
-		db.session.add(user)
+		teamname=current_user.teamname
+		user1 = User(name=form.member1.data, rollnumber=form.rollnumber1.data, team=teamname)
+		user2 = User(name=form.member2.data, rollnumber=form.rollnumber2.data, team=teamname)
+		if form.member3.data and form.rollnumber3.data:
+			user3 = User(name=form.member3.data, rollnumber=form.rollnumber3.data, team=teamname)
+			db.session.add_all([user1, user2, user3])
+		else:
+			db.session.add_all([user1, user2])
+		current_user.check = 1
 		db.session.commit()
-		flash('Your Account Has Been Successfully Created. Now you can Log In', 'success')
-		return redirect(url_for('login'))
+		return redirect(url_for('terminal'))
 	return render_template('memberRegister.html', form=form)
 
 @login_required

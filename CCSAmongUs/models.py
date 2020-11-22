@@ -21,10 +21,11 @@ class Team(db.Model, UserMixin):
 	password = db.Column(db.String(60), nullable=False)
 	coins = db.Column(db.Integer)
 	score = db.Column(db.Integer)
+	check = db.Column(db.Integer, default=0)
 	db.relationship('Post', backref='team', lazy=True)
 
 	def __repr__(self):
-		return f"Team('{self.username}', '{self.email}')"
+		return f"Team('{self.teamname}', '{self.email}')"
 
 class Questions(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)

@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 
-	<form class="login100-form validate-form">
+	<form class="login100-form validate-form", method="POST">
+		{{ form.hidden_tag() }}
 		<span class="login100-form-title">
 			Enter Member Details
 		</span>
 
 		<div class="wrap-input100 validate-input" data-validate = "Member name is required">
-			<input class="input100" type="text" name="member1" placeholder="Member 1 Name">
+			{{ form.member1(class="input100", placeholder=form.member1.label.text)}}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -15,7 +16,16 @@
 		</div>
 
 		<div class="wrap-input100 validate-input" data-validate = "Roll No. is required">
-			<input class="input100" type="number" name="rollno1" placeholder="Member 1 Roll No.">
+			{% if form.rollnumber1.errors %}
+				{{ form.rollnumber1(class="input100")}}
+					{% for error in form.rollnumber1.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.rollnumber1(class="input100", placeholder=form.rollnumber1.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-id-card" aria-hidden="true"></i>
@@ -23,7 +33,7 @@
 		</div>		
 
 		<div class="wrap-input100 validate-input" data-validate = "Member name is required">
-			<input class="input100" type="text" name="member2" placeholder="Member 2 Name">
+			{{ form.member2(class="input100", placeholder=form.member2.label.text)}}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -31,7 +41,16 @@
 		</div>
 
 		<div class="wrap-input100 validate-input" data-validate = "Roll No. is required">
-			<input class="input100" type="number" name="rollno2" placeholder="Member 2 Roll No.">
+			{% if form.rollnumber2.errors %}
+				{{ form.rollnumber2(class="input100")}}
+					{% for error in form.rollnumber2.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.rollnumber2(class="input100", placeholder=form.rollnumber2.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-id-card" aria-hidden="true"></i>
@@ -39,7 +58,7 @@
 		</div>
 
 		<div class="wrap-input100">
-			<input class="input100" type="text" name="member3" placeholder="Member 3 Name">
+			{{ form.member3(class="input100", placeholder=form.member3.label.text)}}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -47,7 +66,16 @@
 		</div>
 
 		<div class="wrap-input100">
-			<input class="input100" type="number" name="rollno3" placeholder="Member 3 Roll No.">
+			{% if form.rollnumber3.errors %}
+				{{ form.rollnumber3(class="input100")}}
+					{% for error in form.rollnumber3.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.rollnumber3(class="input100", placeholder=form.rollnumber3.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-id-card" aria-hidden="true"></i>
