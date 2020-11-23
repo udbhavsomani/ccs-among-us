@@ -1,5 +1,11 @@
 "use strict";
 
+var script = document.createElement('script');
+script.src = 'https://code.jquery.com/jquery-3.4.1.min.js';
+script.type = 'text/javascript';
+document.getElementsByTagName('head')[0].appendChild(script);
+
+
 /**
  * Configs
  */
@@ -399,6 +405,17 @@ var main = (function() {
             this.type("Enter Recieving Team's Name:", () => {
                 var teamName = window.prompt("Enter Team Name");
                 this.type("Sent " + coins + " coins to " + teamName, this.unlock.bind(this));
+                $.ajax({
+                    type : 'POST',
+                    url : '/terminal',
+                    data : {'amount' : coins, 'team2' : teamName},
+                    success: function(response) {
+                        console.log(response);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                  });
             });
         });
     }

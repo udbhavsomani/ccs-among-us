@@ -1,4 +1,4 @@
-from flask import render_template, url_for, flash, redirect
+from flask import render_template, url_for, flash, redirect, request
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
 from CCSAmongUs.models import Team, User, Questions
@@ -52,7 +52,19 @@ def memberRegister():
 	return render_template('memberRegister.html', form=form)
 
 @login_required
-@app.route("/terminal")
+@app.route("/terminal", methods=['GET', 'POST'])
 def terminal():
-	return render_template('terminal.html')
+	error_data = None
+	if request.method == "POST":
+		coins=request.form['amount']
+		team2=request.form['team2']
+		team = Team.query.filter_by(teamname=team2).first()
 
+		if team == None:
+			error_data = {'teamname_error' : 'Team does not exists!'}
+			return render_template('terminal.html', error_data=error_data)
+		if team.teamname == current_user.teamname:
+			error_data = {'teamname_error' : 'Cannot send coins to self!'}
+			return render_template('terminal.html', error_data=error_data)
+		
+	return render_template('terminal.html', error_data=error_data)
