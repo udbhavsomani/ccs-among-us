@@ -43,7 +43,7 @@ var configs = (function() {
         permission_denied_message: "Unable to '<value>', permission denied.",
         sudo_message: "Unable to sudo using a web client.",
         coins_message: "You currently have",
-        coins: "1000 🪙",
+        coins: "1000",
         hoe_message: "Get a side hoe",
         usage: "Usage",
         file: "file",
@@ -400,17 +400,22 @@ var main = (function() {
     }
 
     Terminal.prototype.send = function() {
+        var self = this;
         this.type("Enter Number of coins to send:", () => {
             var coins = window.prompt("Enter Coins");
             this.type("Enter Recieving Team's Name:", () => {
                 var teamName = window.prompt("Enter Team Name");
-                this.type("Sent " + coins + " coins to " + teamName, this.unlock.bind(this));
                 $.ajax({
                     type : 'POST',
                     url : '/terminal',
                     data : {'amount' : coins, 'team2' : teamName},
-                    success: function(response) {
-                        console.log(response);
+                    success: function(data) {
+                        if(data.error != null){
+                            self.type(data.error, self.unlock.bind(self));
+                        }
+                        else{
+                            self.type("Sent " + coins + " coins to " + teamName, self.unlock.bind(self));
+                        }
                     },
                     error: function(error) {
                         console.log(error);
@@ -419,6 +424,7 @@ var main = (function() {
             });
         });
     }
+
 
     Terminal.prototype.sudo = function() {
         this.type(configs.getInstance().sudo_message, this.unlock.bind(this));

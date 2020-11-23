@@ -19,7 +19,7 @@ class Team(db.Model, UserMixin):
 	teamname = db.Column(db.String(20), unique=True, nullable=False)
 	email = db.Column(db.String(120), unique=True, nullable=False)
 	password = db.Column(db.String(60), nullable=False)
-	coins = db.Column(db.Integer)
+	coins = db.Column(db.Integer, default=10)
 	score = db.Column(db.Integer)
 	check = db.Column(db.Integer, default=0)
 	db.relationship('Post', backref='team', lazy=True)

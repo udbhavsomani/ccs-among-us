@@ -1,4 +1,4 @@
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, jsonify
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
 from CCSAmongUs.models import Team, User, Questions
@@ -54,17 +54,23 @@ def memberRegister():
 @login_required
 @app.route("/terminal", methods=['GET', 'POST'])
 def terminal():
-	error_data = None
 	if request.method == "POST":
 		coins=request.form['amount']
 		team2=request.form['team2']
 		team = Team.query.filter_by(teamname=team2).first()
 
 		if team == None:
-			error_data = {'teamname_error' : 'Team does not exists!'}
-			return render_template('terminal.html', error_data=error_data)
+			return jsonify({ 'error' : 'Team does not exists!' })
 		if team.teamname == current_user.teamname:
-			error_data = {'teamname_error' : 'Cannot send coins to self!'}
-			return render_template('terminal.html', error_data=error_data)
-		
-	return render_template('terminal.html', error_data=error_data)
+			return jsonify({ 'error' : 'Cannot send coins to self!' })
+		else:
+			try:
+				if current_user.coins < int(coins):
+					return jsonify({ 'error' : 'You dont have enough coins!'})
+				team.coins += int(coins)
+				current_user.coins -= int(coins)
+				db.session.commit()
+			except ValueError:
+				return jsonify({ 'error' : 'Invalid coin value!'})
+
+	return render_template('terminal.html')

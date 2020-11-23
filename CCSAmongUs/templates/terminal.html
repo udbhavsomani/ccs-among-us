@@ -10,12 +10,6 @@
     <link href="{{ url_for('static', filename='css/terminal.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ url_for('static', filename='js/polyfills.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
-    {% if error_data is not none %}
-        <script type="text/javascript">
-            var error = {{ error_data.teamname_error }}
-            window.prompt(error);
-        </script>
-    {% endif %}
 </head>
 
 <body>
