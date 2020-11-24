@@ -9,9 +9,9 @@ document.getElementsByTagName('head')[0].appendChild(script);
 /**
  * Configs
  */
-var configs = (function() {
+var configs = (function () {
     var instance;
-    var Singleton = function(options) {
+    var Singleton = function (options) {
         var options = options || Singleton.defaultOptions;
         for (var key in Singleton.defaultOptions) {
             this[key] = options[key] || Singleton.defaultOptions[key];
@@ -23,6 +23,7 @@ var configs = (function() {
         cat_help: "Read FILE(s) content and print it to the standard output (screen).",
         whoami_help: "Print the user name associated with the current effective user ID and more info.",
         date_help: "Print the system date and time.",
+        logout_help: "To logout of your terminal.",
         help_help: "Print this menu.",
         clear_help: "Clear the terminal screen.",
         reboot_help: "Reboot the system.",
@@ -44,6 +45,7 @@ var configs = (function() {
         sudo_message: "Unable to sudo using a web client.",
         coins_message: "You currently have",
         coins: "1000",
+        logout_message: "Logging you out....!",
         hoe_message: "Get a side hoe",
         usage: "Usage",
         file: "file",
@@ -60,7 +62,7 @@ var configs = (function() {
         type_delay: 20
     };
     return {
-        getInstance: function(options) {
+        getInstance: function (options) {
             instance === void 0 && (instance = new Singleton(options));
             return instance;
         }
@@ -70,9 +72,9 @@ var configs = (function() {
 /**
  * Your files here
  */
-var files = (function() {
+var files = (function () {
     var instance;
-    var Singleton = function(options) {
+    var Singleton = function (options) {
         var options = options || Singleton.defaultOptions;
         for (var key in Singleton.defaultOptions) {
             this[key] = options[key] || Singleton.defaultOptions[key];
@@ -86,37 +88,37 @@ var files = (function() {
         "social_network_2.txt": "https://example.com/profile/9382/"
     };
     return {
-        getInstance: function(options) {
+        getInstance: function (options) {
             instance === void 0 && (instance = new Singleton(options));
             return instance;
         }
     };
 })();
 
-var main = (function() {
+var main = (function () {
 
     /**
      * Aux functions
      */
     var isUsingIE = window.navigator.userAgent.indexOf("MSIE ") > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./);
 
-    var ignoreEvent = function(event) {
+    var ignoreEvent = function (event) {
         event.preventDefault();
         event.stopPropagation();
     };
 
-    var scrollToBottom = function() {
+    var scrollToBottom = function () {
         window.scrollTo(0, document.body.scrollHeight);
     };
 
-    var isURL = function(str) {
+    var isURL = function (str) {
         return (str.startsWith("http") || str.startsWith("www")) && str.indexOf(" ") === -1 && str.indexOf("\n") === -1;
     };
 
     /**
      * Model
      */
-    var InvalidArgumentException = function(message) {
+    var InvalidArgumentException = function (message) {
         this.message = message;
         // Use V8's native method if available, otherwise fallback
         if ("captureStackTrace" in Error) {
@@ -131,6 +133,7 @@ var main = (function() {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
         LS: { value: "ls", help: configs.getInstance().ls_help },
         HOE: { value: "hoe", help: configs.getInstance().hoe_help },
         COINS: { value: "coins", help: configs.getInstance().coins_help },
@@ -149,7 +152,7 @@ var main = (function() {
         SUDO: { value: "sudo", help: configs.getInstance().sudo_help }
     };
 
-    var Terminal = function(prompt, cmdLine, output, sidenav, profilePic, user, host, root, outputTimer) {
+    var Terminal = function (prompt, cmdLine, output, sidenav, profilePic, user, host, root, outputTimer) {
         if (!(prompt instanceof Node) || prompt.nodeName.toUpperCase() !== "DIV") {
             throw new InvalidArgumentException("Invalid value " + prompt + " for argument 'prompt'.");
         }
@@ -176,32 +179,32 @@ var main = (function() {
         this.typeSimulator = new TypeSimulator(outputTimer, output);
     };
 
-    Terminal.prototype.type = function(text, callback) {
+    Terminal.prototype.type = function (text, callback) {
         this.typeSimulator.type(text, callback);
     };
 
-    Terminal.prototype.exec = function() {
+    Terminal.prototype.exec = function () {
         var command = this.cmdLine.value;
         this.cmdLine.value = "";
         this.prompt.textContent = "";
         this.output.innerHTML += "<span class=\"prompt-color\">" + this.completePrompt + "</span> " + command + "<br/>";
     };
 
-    Terminal.prototype.init = function() {
+    Terminal.prototype.init = function () {
         this.sidenav.addEventListener("click", ignoreEvent);
         this.cmdLine.disabled = true;
-        this.sidenavElements.forEach(function(elem) {
+        this.sidenavElements.forEach(function (elem) {
             elem.disabled = true;
         });
         this.prepareSideNav();
         this.lock(); // Need to lock here since the sidenav elements were just added
-        document.body.addEventListener("click", function(event) {
+        document.body.addEventListener("click", function (event) {
             if (this.sidenavOpen) {
                 this.handleSidenav(event);
             }
             this.focus();
         }.bind(this));
-        this.cmdLine.addEventListener("keydown", function(event) {
+        this.cmdLine.addEventListener("keydown", function (event) {
             if (event.which === 13 || event.keyCode === 13) {
                 this.handleCmd();
                 ignoreEvent(event);
@@ -213,26 +216,26 @@ var main = (function() {
         this.reset();
     };
 
-    Terminal.makeElementDisappear = function(element) {
+    Terminal.makeElementDisappear = function (element) {
         element.style.opacity = 0;
         element.style.transform = "translateX(-300px)";
     };
 
-    Terminal.makeElementAppear = function(element) {
+    Terminal.makeElementAppear = function (element) {
         element.style.opacity = 1;
         element.style.transform = "translateX(0)";
     };
 
-    Terminal.prototype.prepareSideNav = function() {
-        var capFirst = (function() {
-            return function(string) {
+    Terminal.prototype.prepareSideNav = function () {
+        var capFirst = (function () {
+            return function (string) {
                 return string.charAt(0).toUpperCase() + string.slice(1);
             }
         })();
         for (var file in files.getInstance()) {
             var element = document.createElement("button");
             Terminal.makeElementDisappear(element);
-            element.onclick = function(file, event) {
+            element.onclick = function (file, event) {
                 this.handleSidenav(event);
                 this.cmdLine.value = "cat " + file + " ";
                 this.handleCmd();
@@ -245,7 +248,7 @@ var main = (function() {
         document.getElementById("sidenavBtn").addEventListener("click", this.handleSidenav.bind(this));
     };
 
-    Terminal.prototype.handleSidenav = function(event) {
+    Terminal.prototype.handleSidenav = function (event) {
         if (this.sidenavOpen) {
             this.profilePic.style.opacity = 0;
             this.sidenavElements.forEach(Terminal.makeElementDisappear);
@@ -263,26 +266,26 @@ var main = (function() {
         ignoreEvent(event);
     };
 
-    Terminal.prototype.lock = function() {
+    Terminal.prototype.lock = function () {
         this.exec();
         this.cmdLine.blur();
         this.cmdLine.disabled = true;
-        this.sidenavElements.forEach(function(elem) {
+        this.sidenavElements.forEach(function (elem) {
             elem.disabled = true;
         });
     };
 
-    Terminal.prototype.unlock = function() {
+    Terminal.prototype.unlock = function () {
         this.cmdLine.disabled = false;
         this.prompt.textContent = this.completePrompt;
-        this.sidenavElements.forEach(function(elem) {
+        this.sidenavElements.forEach(function (elem) {
             elem.disabled = false;
         });
         scrollToBottom();
         this.focus();
     };
 
-    Terminal.prototype.handleFill = function() {
+    Terminal.prototype.handleFill = function () {
         var cmdComponents = this.cmdLine.value.trim().split(" ");
         if ((cmdComponents.length <= 1) || (cmdComponents.length === 2 && cmdComponents[0] === cmds.CAT.value)) {
             this.lock();
@@ -310,7 +313,7 @@ var main = (function() {
                 this.cmdLine.value = possibilities[0] + " ";
                 this.unlock();
             } else if (possibilities.length > 1) {
-                this.type(possibilities.join("\n"), function() {
+                this.type(possibilities.join("\n"), function () {
                     this.cmdLine.value = cmdComponents.join(" ");
                     this.unlock();
                 }.bind(this));
@@ -321,7 +324,7 @@ var main = (function() {
         }
     };
 
-    Terminal.prototype.handleCmd = function() {
+    Terminal.prototype.handleCmd = function () {
         var cmdComponents = this.cmdLine.value.trim().split(" ");
         this.lock();
         switch (cmdComponents[0]) {
@@ -365,13 +368,16 @@ var main = (function() {
             case cmds.SEND.value:
                 this.send();
                 break;
+            case cmds.LOGOUT.value:
+                this.logout();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
                 break;
         };
     };
 
-    Terminal.prototype.cat = function(cmdComponents) {
+    Terminal.prototype.cat = function (cmdComponents) {
         var result;
         if (cmdComponents.length <= 1) {
             result = configs.getInstance().usage + ": " + cmds.CAT.value + " <" + configs.getInstance().file + ">";
@@ -383,7 +389,7 @@ var main = (function() {
         this.type(result, this.unlock.bind(this));
     };
 
-    Terminal.prototype.ls = function() {
+    Terminal.prototype.ls = function () {
         var result = ".\n..\n" + configs.getInstance().welcome_file_name + "\n";
         for (var file in files.getInstance()) {
             result += file + "\n";
@@ -391,55 +397,68 @@ var main = (function() {
         this.type(result.trim(), this.unlock.bind(this));
     };
 
-    Terminal.prototype.hoe = function() {
+    Terminal.prototype.hoe = function () {
         this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
     }
 
-    Terminal.prototype.coins = function() {
+    Terminal.prototype.coins = function () {
         this.type(configs.getInstance().coins_message, () => { this.type(configs.getInstance().coins, this.unlock.bind(this)); });
     }
 
-    Terminal.prototype.send = function() {
+    Terminal.prototype.send = function () {
         var self = this;
         this.type("Enter Number of coins to send:", () => {
             var coins = window.prompt("Enter Coins");
             this.type("Enter Recieving Team's Name:", () => {
                 var teamName = window.prompt("Enter Team Name");
                 $.ajax({
-                    type : 'POST',
-                    url : '/terminal',
-                    data : {'amount' : coins, 'team2' : teamName},
-                    success: function(data) {
-                        if(data.error != null){
+                    type: 'POST',
+                    url: '/terminal',
+                    data: { 'command': 'transact', 'amount': coins, 'team2': teamName },
+                    success: function (data) {
+                        if (data.error != null) {
                             self.type(data.error, self.unlock.bind(self));
                         }
-                        else{
+                        else {
                             self.type("Sent " + coins + " coins to " + teamName, self.unlock.bind(self));
                         }
                     },
-                    error: function(error) {
+                    error: function (error) {
                         console.log(error);
                     }
-                  });
+                });
             });
         });
     }
 
+    Terminal.prototype.logout = function () {
+        var self = this;
+        $.ajax({
+            type: 'POST',
+            url: '/terminal',
+            data: { 'command': 'logout' },
+            success: function (data) {
+                self.type(configs.getInstance().logout_message, self.unlock.bind(self));
+                setTimeout(() => { window.location.href = data.url; }, 750);
+            },
+            error: function () { }
+        });
+    }
 
-    Terminal.prototype.sudo = function() {
+    Terminal.prototype.sudo = function () {
         this.type(configs.getInstance().sudo_message, this.unlock.bind(this));
     }
 
-    Terminal.prototype.whoami = function(cmdComponents) {
+    Terminal.prototype.whoami = function (cmdComponents) {
         var result = configs.getInstance().username + ": " + configs.getInstance().user + "\n" + configs.getInstance().hostname + ": " + configs.getInstance().host + "\n" + configs.getInstance().platform + ": " + navigator.platform + "\n" + configs.getInstance().accesible_cores + ": " + navigator.hardwareConcurrency + "\n" + configs.getInstance().language + ": " + navigator.language;
         this.type(result, this.unlock.bind(this));
     };
 
-    Terminal.prototype.date = function(cmdComponents) {
+    Terminal.prototype.date = function (cmdComponents) {
         this.type(new Date().toString(), this.unlock.bind(this));
     };
 
-    Terminal.prototype.help = function() {
+    Terminal.prototype.help = function () {
         var result = configs.getInstance().general_help + "\n\n";
         for (var cmd in cmds) {
             result += cmds[cmd].value + " - " + cmds[cmd].help + "\n";
@@ -447,41 +466,41 @@ var main = (function() {
         this.type(result.trim(), this.unlock.bind(this));
     };
 
-    Terminal.prototype.clear = function() {
+    Terminal.prototype.clear = function () {
         this.output.textContent = "";
         this.prompt.textContent = "";
         this.prompt.textContent = this.completePrompt;
         this.unlock();
     };
 
-    Terminal.prototype.reboot = function() {
+    Terminal.prototype.reboot = function () {
         this.type(configs.getInstance().reboot_message, this.reset.bind(this));
         setTimeout(() => { window.location.reload(); }, 5000);
     };
 
-    Terminal.prototype.reset = function() {
+    Terminal.prototype.reset = function () {
         this.output.textContent = "";
         this.prompt.textContent = "";
         if (this.typeSimulator) {
-            this.type(configs.getInstance().welcome + (isUsingIE ? "\n" + configs.getInstance().internet_explorer_warning : ""), function() {
+            this.type(configs.getInstance().welcome + (isUsingIE ? "\n" + configs.getInstance().internet_explorer_warning : ""), function () {
                 this.unlock();
             }.bind(this));
         }
     };
 
-    Terminal.prototype.permissionDenied = function(cmdComponents) {
+    Terminal.prototype.permissionDenied = function (cmdComponents) {
         this.type(configs.getInstance().permission_denied_message.replace(configs.getInstance().value_token, cmdComponents[0]), this.unlock.bind(this));
     };
 
-    Terminal.prototype.invalidCommand = function(cmdComponents) {
+    Terminal.prototype.invalidCommand = function (cmdComponents) {
         this.type(configs.getInstance().invalid_command_message.replace(configs.getInstance().value_token, cmdComponents[0]), this.unlock.bind(this));
     };
 
-    Terminal.prototype.focus = function() {
+    Terminal.prototype.focus = function () {
         this.cmdLine.focus();
     };
 
-    var TypeSimulator = function(timer, output) {
+    var TypeSimulator = function (timer, output) {
         var timer = parseInt(timer);
         if (timer === Number.NaN || timer < 0) {
             throw new InvalidArgumentException("Invalid value " + timer + " for argument 'timer'.");
@@ -493,7 +512,7 @@ var main = (function() {
         this.output = output;
     };
 
-    TypeSimulator.prototype.type = function(text, callback) {
+    TypeSimulator.prototype.type = function (text, callback) {
         if (isURL(text)) {
             window.open(text);
         }
@@ -501,7 +520,7 @@ var main = (function() {
         var output = this.output;
         var timer = this.timer;
         var skipped = false;
-        var skip = function() {
+        var skip = function () {
             skipped = true;
         }.bind(this);
         document.addEventListener("dblclick", skip);
@@ -528,7 +547,7 @@ var main = (function() {
     };
 
     return {
-        listener: function() {
+        listener: function () {
             new Terminal(
                 document.getElementById("prompt"),
                 document.getElementById("cmdline"),
