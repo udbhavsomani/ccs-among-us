@@ -5,7 +5,6 @@ script.src = 'https://code.jquery.com/jquery-3.4.1.min.js';
 script.type = 'text/javascript';
 document.getElementsByTagName('head')[0].appendChild(script);
 
-
 /**
  * Configs
  */
@@ -17,6 +16,7 @@ var configs = (function () {
             this[key] = options[key] || Singleton.defaultOptions[key];
         }
     };
+
     Singleton.defaultOptions = {
         general_help: "Below there's a list of commands that you can use.\nYou can use autofill by pressing the TAB key, autocompleting if there's only 1 possibility, or showing you a list of possibilities.",
         ls_help: "List information about the files and folders (the current directory by default).",
@@ -43,8 +43,7 @@ var configs = (function () {
         reboot_message: "Preparing to reboot...\n\n3...\n\n2...\n\n1...\n\nRebooting...\n\n",
         permission_denied_message: "Unable to '<value>', permission denied.",
         sudo_message: "Unable to sudo using a web client.",
-        coins_message: "You currently have",
-        coins: "1000",
+        coins_message: "You currently have ",
         logout_message: "Logging you out....!",
         hoe_message: "Get a side hoe",
         usage: "Usage",
@@ -57,7 +56,7 @@ var configs = (function () {
         language: "Language",
         value_token: "<value>",
         host: "ccstiet.com",
-        user: "Jashan",
+        user: "User",
         is_root: true,
         type_delay: 20
     };
@@ -168,7 +167,19 @@ var main = (function () {
         if (!(profilePic instanceof Node) || profilePic.nodeName.toUpperCase() !== "IMG") {
             throw new InvalidArgumentException("Invalid value " + profilePic + " for argument 'profilePic'.");
         }
-        (typeof user === "string" && typeof host === "string") && (this.completePrompt = user + "@" + host + ":~" + (root ? "#" : "$"));
+
+        var live_user = (function(){
+            var user = $.parseJSON($.ajax({
+                type: 'POST',
+                url: '/terminal',
+                data: { 'command' : 'get_teamname' },
+                async: false,
+            }).responseText);
+        
+            return user.user;
+        })();
+
+        (typeof user === "string" && typeof host === "string") && (this.completePrompt = live_user + "@" + host + ":~" + (root ? "#" : "$"));
         this.profilePic = profilePic;
         this.prompt = prompt;
         this.cmdLine = cmdLine;
@@ -402,7 +413,16 @@ var main = (function () {
     }
 
     Terminal.prototype.coins = function () {
-        this.type(configs.getInstance().coins_message, () => { this.type(configs.getInstance().coins, this.unlock.bind(this)); });
+        var self = this;
+        $.ajax({
+            type: 'POST',
+            url: '/terminal',
+            data: { 'command' : 'get_coins' },
+            async: true,
+            success: function(data) {
+                self.type(configs.getInstance().coins_message + data.coins + " coins.", self.unlock.bind(self));
+            }
+        });
     }
 
     Terminal.prototype.send = function () {

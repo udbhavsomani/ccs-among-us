@@ -62,6 +62,13 @@ def memberRegister():
 @app.route("/terminal", methods=['GET', 'POST'])
 @login_required
 def terminal():
+    if request.method == 'POST' and request.form['command'] == 'get_teamname':
+        print(type(current_user.teamname))
+        return jsonify({'user': current_user.teamname})
+
+    if request.method == 'POST' and request.form['command'] == 'get_coins':
+        return jsonify({'coins': current_user.coins})
+
     if request.method == "POST" and request.form['command'] == 'logout':
         logout_user()
         return jsonify({'url': '/login'})
