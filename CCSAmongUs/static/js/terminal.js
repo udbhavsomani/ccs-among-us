@@ -24,6 +24,7 @@ var configs = (function () {
         whoami_help: "Print the user name associated with the current effective user ID and more info.",
         date_help: "Print the system date and time.",
         logout_help: "To logout of your terminal.",
+        transactions_help: "Show all your transactions.",
         help_help: "Print this menu.",
         clear_help: "Clear the terminal screen.",
         reboot_help: "Reboot the system.",
@@ -45,6 +46,7 @@ var configs = (function () {
         sudo_message: "Unable to sudo using a web client.",
         coins_message: "You currently have ",
         logout_message: "Logging you out....!",
+        transaction_message: "Your transactions: \n",
         hoe_message: "Get a side hoe",
         usage: "Usage",
         file: "file",
@@ -132,6 +134,7 @@ var main = (function () {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        TRANSACTIONS: { value: "transactions", help: configs.getInstance().transactions_help },
         LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
         LS: { value: "ls", help: configs.getInstance().ls_help },
         HOE: { value: "hoe", help: configs.getInstance().hoe_help },
@@ -168,14 +171,14 @@ var main = (function () {
             throw new InvalidArgumentException("Invalid value " + profilePic + " for argument 'profilePic'.");
         }
 
-        var live_user = (function(){
+        var live_user = (function () {
             var user = $.parseJSON($.ajax({
                 type: 'POST',
                 url: '/terminal',
-                data: { 'command' : 'get_teamname' },
+                data: { 'command': 'get_teamname' },
                 async: false,
             }).responseText);
-        
+
             return user.user;
         })();
 
@@ -382,9 +385,11 @@ var main = (function () {
             case cmds.LOGOUT.value:
                 this.logout();
                 break;
+            case cmds.TRANSACTIONS.value:
+                this.transactions();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
-                break;
         };
     };
 
@@ -417,9 +422,9 @@ var main = (function () {
         $.ajax({
             type: 'POST',
             url: '/terminal',
-            data: { 'command' : 'get_coins' },
+            data: { 'command': 'get_coins' },
             async: true,
-            success: function(data) {
+            success: function (data) {
                 self.type(configs.getInstance().coins_message + data.coins + " coins.", self.unlock.bind(self));
             }
         });
@@ -462,6 +467,25 @@ var main = (function () {
                 setTimeout(() => { window.location.href = data.url; }, 750);
             },
             error: function () { }
+        });
+    }
+
+    Terminal.prototype.transactions = function () {
+        var self = this;
+        let output = "";
+        $.ajax({
+            type: 'POST',
+            url: '/terminal',
+            data: { 'command': 'show_transactions' },
+            async: false,
+            success: function (data) {
+                self.type(configs.getInstance().transaction_message);
+                for(var x in data.data){
+                    output += (data.data[x] + '\n');
+                }
+                setTimeout(() => { self.type(output, self.unlock.bind(self)); }, 550);              
+            },
+            error: function () {}
         });
     }
 

@@ -1,8 +1,10 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
-from CCSAmongUs.models import Team, User, Questions
+from CCSAmongUs.models import Team, User, Questions, Transactions
 from flask_login import login_user, current_user, logout_user, login_required
+from datetime import datetime
+from pytz import timezone
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -62,6 +64,19 @@ def memberRegister():
 @app.route("/terminal", methods=['GET', 'POST'])
 @login_required
 def terminal():
+    if request.method == 'POST' and request.form['command'] == 'show_transactions':
+        data = {}
+        c = 0
+        transactions_all = Transactions.query.filter_by(
+            sender=current_user.teamname).all()
+        transactions_all += Transactions.query.filter_by(
+            receiver=current_user.teamname).all()
+        for i in transactions_all:
+            data[
+                f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+            c += 1
+        return jsonify({'data': data})
+
     if request.method == 'POST' and request.form['command'] == 'get_teamname':
         return jsonify({'user': current_user.teamname})
 
@@ -87,6 +102,9 @@ def terminal():
                     return jsonify({'error': 'You dont have enough coins!'})
                 team.coins += int(coins)
                 current_user.coins -= int(coins)
+                transaction = Transactions(sender=current_user.teamname, amount=int(
+                    coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
+                db.session.add(transaction)
                 db.session.commit()
             except ValueError:
                 return jsonify({'error': 'Invalid coin value!'})
