@@ -64,49 +64,50 @@ def memberRegister():
 @app.route("/terminal", methods=['GET', 'POST'])
 @login_required
 def terminal():
-    if request.method == 'POST' and request.form['command'] == 'show_transactions':
-        data = {}
-        c = 0
-        transactions_all = Transactions.query.filter_by(
-            sender=current_user.teamname).all()
-        transactions_all += Transactions.query.filter_by(
-            receiver=current_user.teamname).all()
-        for i in transactions_all:
-            data[
-                f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
-            c += 1
-        return jsonify({'data': data})
+    if request.method == 'POST':
+        if request.form['command'] == 'show_transactions':
+            data = {}
+            c = 0
+            transactions_all = Transactions.query.filter_by(
+                sender=current_user.teamname).all()
+            transactions_all += Transactions.query.filter_by(
+                receiver=current_user.teamname).all()
+            for i in transactions_all:
+                data[
+                    f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                c += 1
+            return jsonify({'data': data})
 
-    if request.method == 'POST' and request.form['command'] == 'get_teamname':
-        return jsonify({'user': current_user.teamname})
+        if request.form['command'] == 'get_teamname':
+            return jsonify({'user': current_user.teamname})
 
-    if request.method == 'POST' and request.form['command'] == 'get_coins':
-        return jsonify({'coins': current_user.coins})
+        if request.form['command'] == 'get_coins':
+            return jsonify({'coins': current_user.coins})
 
-    if request.method == "POST" and request.form['command'] == 'logout':
-        logout_user()
-        return jsonify({'url': '/login'})
+        if request.form['command'] == 'logout':
+            logout_user()
+            return jsonify({'url': '/login'})
 
-    if request.method == "POST" and request.form['command'] == 'transact':
-        coins = request.form['amount']
-        team2 = request.form['team2']
-        team = Team.query.filter_by(teamname=team2).first()
+        if request.form['command'] == 'transact':
+            coins = request.form['amount']
+            team2 = request.form['team2']
+            team = Team.query.filter_by(teamname=team2).first()
 
-        if team == None:
-            return jsonify({'error': 'Team does not exists!'})
-        if team.teamname == current_user.teamname:
-            return jsonify({'error': 'Cannot send coins to self!'})
-        else:
-            try:
-                if current_user.coins < int(coins):
-                    return jsonify({'error': 'You dont have enough coins!'})
-                team.coins += int(coins)
-                current_user.coins -= int(coins)
-                transaction = Transactions(sender=current_user.teamname, amount=int(
-                    coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
-                db.session.add(transaction)
-                db.session.commit()
-            except ValueError:
-                return jsonify({'error': 'Invalid coin value!'})
+            if team == None:
+                return jsonify({'error': 'Team does not exists!'})
+            if team.teamname == current_user.teamname:
+                return jsonify({'error': 'Cannot send coins to self!'})
+            else:
+                try:
+                    if current_user.coins < int(coins):
+                        return jsonify({'error': 'You dont have enough coins!'})
+                    team.coins += int(coins)
+                    current_user.coins -= int(coins)
+                    transaction = Transactions(sender=current_user.teamname, amount=int(
+                        coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
+                    db.session.add(transaction)
+                    db.session.commit()
+                except ValueError:
+                    return jsonify({'error': 'Invalid coin value!'})
 
     return render_template('terminal.html')
