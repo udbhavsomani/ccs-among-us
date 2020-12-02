@@ -25,6 +25,7 @@ var configs = (function () {
         date_help: "Print the system date and time.",
         logout_help: "To logout of your terminal.",
         transactions_help: "Show all your transactions.",
+        submit_answer_help: "To submit your answer for a question.",
         help_help: "Print this menu.",
         clear_help: "Clear the terminal screen.",
         reboot_help: "Reboot the system.",
@@ -138,6 +139,7 @@ var main = (function () {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        SUBMIT_ANSWER: { value: "submit_answer", help: configs.getInstance().submit_answer_help },
         TRANSACTIONS: { value: "transactions", help: configs.getInstance().transactions_help },
         LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
         LS: { value: "ls", help: configs.getInstance().ls_help },
@@ -408,6 +410,9 @@ var main = (function () {
             case cmds.TRANSACTIONS.value:
                 this.transactions();
                 break;
+            case cmds.SUBMIT_ANSWER.value:
+                this.submit_answer();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
         };
@@ -437,13 +442,40 @@ var main = (function () {
         this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
     }
 
+    Terminal.prototype.submit_answer = function () {
+        var self = this;
+        let q_num, answer;
+        this.type("For question number: ", () => {
+            q_num = window.prompt("Enter question number");
+            this.type("Enter your answer: ", () => {
+                answer = window.prompt("Enter answer");
+                $.ajax({
+                    type: 'POST',
+                    url: '/terminal',
+                    data: { 'command': 'submit', 'q_num': q_num, 'answer': answer },
+                    success: function (data) {
+                        if (data.error != null) {
+                            self.type(data.error, self.unlock.bind(self));
+                        } 
+                        else if (data.status != null){
+                            self.type(data.status + " answer! " + data.message, self.unlock.bind(self));
+                        }
+                        else{
+                            self.type(data.message, self.unlock.bind(self));
+                        }
+                    },
+                    error: function () { }
+                });
+            });
+        });
+    }
+
     Terminal.prototype.coins = function () {
         var self = this;
         $.ajax({
             type: 'POST',
             url: '/terminal',
             data: { 'command': 'get_coins' },
-            async: true,
             success: function (data) {
                 self.type(configs.getInstance().coins_message + data.coins + " coins.", self.unlock.bind(self));
             }
@@ -521,7 +553,6 @@ var main = (function () {
         var self = this;
         let output = "";
         let q_num;
-        let flag = 0;
         this.type("Enter the question number for which you wish to see the received answers: ", () => {
             q_num = window.prompt("Enter question number");
             $.ajax({
@@ -530,7 +561,6 @@ var main = (function () {
                 data: { 'command': 'show_answers', 'q_num': q_num },
                 success: function (data) {
                     if (data.error == null) {
-                        flag = 1;
                         for (var x in data.data) {
                             output += (data.data[x] + '\n');
                         }

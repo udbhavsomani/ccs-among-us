@@ -1,7 +1,7 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
-from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog
+from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, Answer
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from pytz import timezone
@@ -87,6 +87,35 @@ def terminal():
         if request.form['command'] == 'logout':
             logout_user()
             return jsonify({'url': '/login'})
+
+        if request.form['command'] == 'submit':
+            answer = request.form['answer']
+            q_check = request.form['q_num']
+            status = "Incorrect"
+            check = False
+            message = "You got 100 points!"
+            try:
+                num = int(q_check)
+                q_check = Questions.query.filter_by(id=num).first()
+
+                if q_check == None:
+                    return jsonify({'error': 'Wrong question number!'})
+                
+                # if current_user.q1 == 1:
+                #     message = "You have already answered this question correctly!"
+                #     return jsonify({'message': message})
+
+                if q_check.answer == answer:
+                    check = True
+                    status = "Correct"
+                    current_user.score += 100
+
+                db.session.add(Answer(team=current_user.teamname, question=num, answer=answer, check=check, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
+                db.session.commit()
+                return jsonify({'status': status, 'message': message})
+
+            except ValueError:
+                return jsonify({'error': 'Invalid question value!'})
 
         if request.form['command'] == 'show_leaderboard':
             data = {}

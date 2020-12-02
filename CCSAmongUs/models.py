@@ -29,7 +29,7 @@ class Team(db.Model, UserMixin):
     coins = db.Column(db.Integer, default=10)
     score = db.Column(db.Integer, default=0)
     check = db.Column(db.Integer, default=0)
-    db.relationship('Post', backref='team', lazy=True)
+    db.relationship('User', backref='team', lazy=True)
 
     def __repr__(self):
         return f"Team('{self.teamname}', '{self.email}')"
@@ -70,4 +70,13 @@ class Answerlog(db.Model, UserMixin):
     receiving_team = db.Column(db.String(50), nullable=False)
     question = db.Column(db.Integer, nullable=False)
     answer = db.Column(db.String(30), nullable=False)
+    token = db.Column(db.DateTime, nullable=False)
+
+
+class Answer(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+    team = db.Column(db.String(50), nullable=False)
+    question = db.Column(db.Integer, nullable=False)
+    answer = db.Column(db.String(30), nullable=False)
+    check = db.Column(db.Boolean, nullable=False)
     token = db.Column(db.DateTime, nullable=False)
