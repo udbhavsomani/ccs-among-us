@@ -73,8 +73,7 @@ def terminal():
             transactions_all += Transactions.query.filter_by(
                 receiver=current_user.teamname).all()
             for i in transactions_all:
-                data[
-                    f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                data[f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
                 c += 1
             return jsonify({'data': data})
 
@@ -87,6 +86,16 @@ def terminal():
         if request.form['command'] == 'logout':
             logout_user()
             return jsonify({'url': '/login'})
+
+        if request.form['command'] == 'show_leaderboard':
+            data = {}
+            c = 0
+            leaderboard = Team.query.order_by(Team.score.desc()).all()
+            for i in leaderboard:
+                dash = (25 - len(leaderboard[c].teamname)) * '-'
+                data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score}"
+                c += 1
+            return jsonify({'data': data})
 
         if request.form['command'] == 'transact':
             coins = request.form['amount']

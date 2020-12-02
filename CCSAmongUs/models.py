@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import DefaultDict
 from CCSAmongUs import db, login_manager, app
 from flask_login import UserMixin
 from pytz import timezone
@@ -26,7 +27,7 @@ class Team(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     coins = db.Column(db.Integer, default=10)
-    score = db.Column(db.Integer)
+    score = db.Column(db.Integer, default=0)
     check = db.Column(db.Integer, default=0)
     db.relationship('Post', backref='team', lazy=True)
 
