@@ -491,13 +491,27 @@ var main = (function () {
 
     Terminal.prototype.ganswer = function () {
         var self = this;
-        this.type("Enter Team Name which you want to give answer to:", () => {
+        this.type("Enter Team Name which you want to give answer to: ", () => {
             var teamName = window.prompt("Enter Team Name");
-            this.type("Enter Question Number:", () => {
+            this.type("Enter Question Number: ", () => {
                 var questionNumber = window.prompt("Enter Question Number");
-                this.type("Enter the answer you want to give", () => {
+                this.type("Enter answer to send: ", () => {
                     var answer = window.prompt("Enter answer");
-                    this.type(teamName + " sent answer=\"" + answer + "\" for question number " + questionNumber, this.unlock.bind(this));
+                    $.ajax({
+                        type: 'POST',
+                        url: '/terminal',
+                        data: { 'command': 'send_answer', 'answer': answer, 'to_team': teamName, 'question': questionNumber },
+                        success: function (data) {
+                            if (data.error != null) {
+                                self.type(data.error, self.unlock.bind(self));
+                            } else {
+                                self.type(" sent answer = \"" + answer + "\" " + "to " + teamName + " for question number " + questionNumber + ".", self.unlock.bind(self));
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
                 });
             });
         });
@@ -505,13 +519,32 @@ var main = (function () {
 
     Terminal.prototype.ranswer = function () {
         var self = this;
-        this.type("The answer you have recieved are:", () => {
-            this.type("Answer1", () => {
-                this.type("Answer2", () => {
-                    this.type("Answer3", this.unlock.bind(this));
-                });
+        let output = "";
+        let q_num;
+        let flag = 0;
+        this.type("Enter the question number for which you wish to see the received answers: ", () => {
+            q_num = window.prompt("Enter question number");
+            $.ajax({
+                type: 'POST',
+                url: '/terminal',
+                data: { 'command': 'show_answers', 'q_num': q_num },
+                success: function (data) {
+                    if (data.error == null) {
+                        flag = 1;
+                        for (var x in data.data) {
+                            output += (data.data[x] + '\n');
+                        }
+                        self.type("The answers you have recieved " + "for question number " + q_num + " are: \n", () => {
+                            self.type(output, self.unlock.bind(self));
+                        });
+                    }
+                    else {
+                        self.type(data.error, self.unlock.bind(self));
+                    }
+                },
+                error: function () { }
             });
-        });
+        })
     }
 
     Terminal.prototype.leaderboard = function () {
@@ -540,8 +573,7 @@ var main = (function () {
             url: '/terminal',
             data: { 'command': 'logout' },
             success: function (data) {
-                self.type(configs.getInstance().logout_message, self.unlock.bind(self));
-                setTimeout(() => { window.location.href = data.url; }, 750);
+                self.type(configs.getInstance().logout_message, () => { window.location.href = data.url; });
             },
             error: function () { }
         });

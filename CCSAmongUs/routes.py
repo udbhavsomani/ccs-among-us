@@ -1,7 +1,7 @@
 from flask import render_template, url_for, flash, redirect, request, jsonify
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
-from CCSAmongUs.models import Team, User, Questions, Transactions
+from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from pytz import timezone
@@ -73,7 +73,8 @@ def terminal():
             transactions_all += Transactions.query.filter_by(
                 receiver=current_user.teamname).all()
             for i in transactions_all:
-                data[f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                data[
+                    f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
                 c += 1
             return jsonify({'data': data})
 
@@ -97,6 +98,49 @@ def terminal():
                 c += 1
             return jsonify({'data': data})
 
+        if request.form['command'] == 'send_answer':
+            from_team = current_user.teamname
+            answer = request.form['answer']
+            to_team = request.form['to_team']
+            question = request.form['question']
+            team = Team.query.filter_by(teamname=to_team).first()
+
+            if team == None:
+                return jsonify({'error': 'Team does not exists!'})
+            if team.teamname == current_user.teamname:
+                return jsonify({'error': 'Cannot send answers to self!'})
+
+            try:
+                num = int(question)
+                # TODO: check time also for future questions
+                q_check = Questions.query.filter_by(id=num).first()
+
+                if q_check == None:
+                    return jsonify({'error': 'Wrong question number!'})
+
+                db.session.add(Answerlog(giving_team=from_team, receiving_team=to_team, question=num,
+                                         answer=answer, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
+                db.session.commit()
+
+            except ValueError:
+                return jsonify({'error': 'Invalid question value!'})
+
+        if request.form['command'] == 'show_answers':
+            data = {}
+            c = 0
+            try:
+                question = int(request.form['q_num'])
+                answers = Answerlog.query.filter_by(
+                    receiving_team=current_user.teamname, question=question).order_by(Answerlog.token.desc()).all()
+                for i in answers:
+                    data[
+                        f"{c+1}"] = f"Received answer = \"{answers[c].answer}\" from {answers[c].giving_team} on {answers[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                    c += 1
+                return jsonify({'data': data})
+
+            except ValueError:
+                return jsonify({'error': 'Invalid question value!'})
+
         if request.form['command'] == 'transact':
             coins = request.form['amount']
             team2 = request.form['team2']
@@ -106,17 +150,17 @@ def terminal():
                 return jsonify({'error': 'Team does not exists!'})
             if team.teamname == current_user.teamname:
                 return jsonify({'error': 'Cannot send coins to self!'})
-            else:
-                try:
-                    if current_user.coins < int(coins):
-                        return jsonify({'error': 'You dont have enough coins!'})
-                    team.coins += int(coins)
-                    current_user.coins -= int(coins)
-                    transaction = Transactions(sender=current_user.teamname, amount=int(
-                        coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
-                    db.session.add(transaction)
-                    db.session.commit()
-                except ValueError:
-                    return jsonify({'error': 'Invalid coin value!'})
+
+            try:
+                if current_user.coins < int(coins):
+                    return jsonify({'error': 'You dont have enough coins!'})
+                team.coins += int(coins)
+                current_user.coins -= int(coins)
+                transaction = Transactions(sender=current_user.teamname, amount=int(
+                    coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
+                db.session.add(transaction)
+                db.session.commit()
+            except ValueError:
+                return jsonify({'error': 'Invalid coin value!'})
 
     return render_template('terminal.html')
