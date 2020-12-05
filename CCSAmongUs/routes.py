@@ -93,7 +93,7 @@ def terminal():
             q_check = request.form['q_num']
             status = "Incorrect"
             check = False
-            message = "You got 100 points!"
+            message = "You got 0 points!"
             try:
                 num = int(q_check)
                 q_check = Questions.query.filter_by(id=num).first()
@@ -101,13 +101,20 @@ def terminal():
                 if q_check == None:
                     return jsonify({'error': 'Wrong question number!'})
                 
-                # if current_user.q1 == 1:
-                #     message = "You have already answered this question correctly!"
-                #     return jsonify({'message': message})
+                a_check = Answer.query.filter_by(team=current_user.teamname, question=num).first()
+                if a_check is not None:
+                    if a_check.check == 0:
+                        db.session.delete(a_check)
+                        db.session.commit()
+
+                    else:
+                        message = "You have already answered this question correctly!"
+                        return jsonify({'message': message})
 
                 if q_check.answer == answer:
                     check = True
                     status = "Correct"
+                    message = "You got 100 points!"
                     current_user.score += 100
 
                 db.session.add(Answer(team=current_user.teamname, question=num, answer=answer, check=check, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
