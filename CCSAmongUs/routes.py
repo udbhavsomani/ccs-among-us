@@ -336,4 +336,14 @@ def terminal():
                 error = f"Mana kiya hai na admin commands use karne ke liye team {current_user.teamname}? Repetition of such act will lead to Disqualification."
                 return jsonify({'error': error})
 
+        if request.form['command'] == 'show_question':
+            data = {}
+            c = 0
+            ques_all = Question.query.all()
+            for i in ques_all:
+                data[
+                    f"{c+1}"] = f"{ques_all[c].receiving_team} got {ques_all[c].answer} from {ques_all[c].giving_team}. Date: {ques_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                c += 1
+            return jsonify({'data': data})
+
     return render_template('terminal.html')
