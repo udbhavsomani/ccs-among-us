@@ -8,6 +8,7 @@
     <title>Among CCS</title>
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/x-icon" />
     <link href="{{ url_for('static', filename='css/terminal.css') }}" rel="stylesheet" type="text/css" />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
     <script src="{{ url_for('static', filename='js/polyfills.js') }}"></script>
     <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
 </head>
@@ -15,7 +16,7 @@
 <body>
     <div id="sidenav">
         <button id="sidenavBtn">&#9776;</button>
-        <img id="profilePic" alt="An avatar that aims to represent the website owner" src="{{ url_for('static', filename='images/avatar.png') }}">
+        <img id="profilePic" alt="Creative Computing Society" src="{{ url_for('static', filename='images/avatar.png') }}">
     </div>
     <div id="container">
         <div id="output"></div>
