@@ -557,7 +557,7 @@ var main = (function () {
                             } else {
                                 self.type(data.message, self.unlock.bind(self));
                             }
-                            
+
                         },
                         error: function (error) {
                             console.log(error);
@@ -704,8 +704,7 @@ var main = (function () {
     };
 
     Terminal.prototype.reboot = function () {
-        this.type(configs.getInstance().reboot_message, this.reset.bind(this));
-        setTimeout(() => { window.location.reload(); }, 5000);
+        this.type(configs.getInstance().reboot_message, () => { window.location.reload(); });
     };
 
     Terminal.prototype.reset = function () {
