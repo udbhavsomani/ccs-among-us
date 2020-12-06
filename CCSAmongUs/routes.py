@@ -300,4 +300,40 @@ def terminal():
                 message = f"Bohot tej ho rahe ho team {current_user.teamname}. Repetition of such act will lead to Disqualification."
                 return jsonify({'message': message})
 
+        if request.form['command'] == 'at':
+            if current_user.teamname == 'admin@CCS':
+                team = request.form['teamname']
+                data = {}
+                c = 0
+                transactions_all = Transactions.query.filter_by(
+                    sender=team).all()
+                transactions_all += Transactions.query.filter_by(
+                    receiver=team).all()
+                for i in transactions_all:
+                    data[
+                        f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                    c += 1
+                return jsonify({'data': data})
+            else:
+                error = f"Mana kiya hai na admin commands use karne ke liye team {current_user.teamname}? Repetition of such act will lead to Disqualification."
+                return jsonify({'error': error})
+
+        if request.form['command'] == 'al':
+            if current_user.teamname == 'admin@CCS':
+                team = request.form['teamname']
+                data = {}
+                c = 0
+                al_all = Answerlog.query.filter_by(
+                    receiving_team=team).all()
+                al_all += Answerlog.query.filter_by(
+                    giving_team=team).all()
+                for i in al_all:
+                    data[
+                        f"{c+1}"] = f"{al_all[c].receiving_team} got {al_all[c].answer} from {al_all[c].giving_team}. Date: {al_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                    c += 1
+                return jsonify({'data': data})
+            else:
+                error = f"Mana kiya hai na admin commands use karne ke liye team {current_user.teamname}? Repetition of such act will lead to Disqualification."
+                return jsonify({'error': error})
+
     return render_template('terminal.html')

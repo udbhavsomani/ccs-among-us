@@ -43,6 +43,8 @@ var configs = (function () {
         ranswer_help: "Shows all the answers that you have recieved from other teams",
         leaderboard_help: "Shows current leaderboard",
         insert_question_help: "Admin only command",
+        at_help: "Admin only command",
+        al_help: "Admin only command",
         welcome: "Welcome to CodeSus! :)\nIn order for you to start customizing the texts, go to js/main.js and replace the texts located at the configs var.\nIn that same file, you can define all the fake files you want as well as their content. This files will appear on the sidenav.\nAlso, don't forget to change the colors on the css/main.css file as well as the website title on the index.html file.\nNow in order to get started, feel free to either execute the 'help' command or use the more user-friendly colored sidenav at your left.\nIn order to skip text rolling, double click/touch anywhere.",
         internet_explorer_warning: "NOTE: I see you're using internet explorer, this website won't work properly.",
         welcome_file_name: "welcome_message.txt",
@@ -140,6 +142,8 @@ var main = (function () {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        AL: { value: "al", help: configs.getInstance().al_help },
+        AT: { value: "at", help: configs.getInstance().at_help },
         INSERT_QUESTION: { value: "insert_question", help: configs.getInstance().insert_question_help },
         SUBMIT_ANSWER: { value: "submit_answer", help: configs.getInstance().submit_answer_help },
         TRANSACTIONS: { value: "transactions", help: configs.getInstance().transactions_help },
@@ -418,6 +422,12 @@ var main = (function () {
             case cmds.INSERT_QUESTION.value:
                 this.insert_question();
                 break;
+            case cmds.AT.value:
+                this.at();
+                break;
+            case cmds.AL.value:
+                this.al();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
         };
@@ -445,6 +455,60 @@ var main = (function () {
 
     Terminal.prototype.hoe = function () {
         this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
+    }
+
+    Terminal.prototype.al = function () {
+        var self = this;
+        let teamname, output='';
+        this.type("Enter teamname: ", () => {
+            teamname = window.prompt("Enter teamname");
+            $.ajax({
+                type: 'POST',
+                url: '/terminal',
+                data: { 'command': 'al', 'teamname': teamname },
+                success: function (data) {
+                if (data.error != null){
+                    self.type(data.error, self.unlock.bind(self));
+                }
+                else{
+                    for (let x in data.data) {
+                        output += (data.data[x] + '\n');
+                    }
+                }
+            },
+            error: function () { }
+            });
+            self.type(configs.getInstance().transaction_message, () => {
+                this.type(output, self.unlock.bind(self));
+            });
+        });
+    }
+
+    Terminal.prototype.at = function () {
+        var self = this;
+        let teamname, output='';
+        this.type("Enter teamname: ", () => {
+            teamname = window.prompt("Enter teamname");
+            $.ajax({
+                type: 'POST',
+                url: '/terminal',
+                data: { 'command': 'at', 'teamname': teamname },
+                success: function (data) {
+                if (data.error != null){
+                    self.type(data.error, self.unlock.bind(self));
+                }
+                else{
+                    for (let x in data.data) {
+                        output += (data.data[x] + '\n');
+                    }
+                }
+            },
+            error: function () { }
+            });
+            self.type(configs.getInstance().transaction_message, () => {
+                this.type(output, self.unlock.bind(self));
+            });
+        });
     }
 
     Terminal.prototype.insert_question = function () {
