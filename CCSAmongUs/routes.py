@@ -1,10 +1,12 @@
-from flask import render_template, url_for, flash, redirect, request, jsonify
+from flask import json, render_template, url_for, flash, redirect, request, jsonify
 from CCSAmongUs import app, db
 from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
-from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, Answer
+from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, Answer, Reportlog
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from pytz import timezone
+
+# TODO: ADMIN API
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -100,8 +102,9 @@ def terminal():
 
                 if q_check == None:
                     return jsonify({'error': 'Wrong question number!'})
-                
-                a_check = Answer.query.filter_by(team=current_user.teamname, question=num).first()
+
+                a_check = Answer.query.filter_by(
+                    team=current_user.teamname, question=num).first()
                 if a_check is not None:
                     if a_check.check == 0:
                         db.session.delete(a_check)
@@ -117,9 +120,80 @@ def terminal():
                     message = "You got 100 points!"
                     current_user.score += 100
 
-                db.session.add(Answer(team=current_user.teamname, question=num, answer=answer, check=check, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
+                db.session.add(Answer(team=current_user.teamname, question=num, answer=answer, check=check,
+                                      token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
                 db.session.commit()
                 return jsonify({'status': status, 'message': message})
+
+            except ValueError:
+                return jsonify({'error': 'Invalid question value!'})
+
+        if request.form['command'] == 'report':
+            reporting_team = current_user.teamname
+            reported = request.form['team']
+            answer = request.form['answer']
+            q = request.form['q']
+            try:
+                q = int(q)
+                question = Questions.query.filter_by(id=q).first()
+
+                if question == None:
+                    return jsonify({'error': 'Wrong question number!'})
+
+                r_check = Reportlog.query.filter_by(
+                    reporter=reporting_team, imposter=reported, question=q).first()
+
+                if r_check != None:
+                    error = f"You have already reported {reported} for question {q}."
+                    return jsonify({'error': error})
+
+                log = Answerlog.query.filter_by(
+                    giving_team=reported, receiving_team=reporting_team, question=q, answer=answer).order_by('token').first()
+                submited = Answer.query.filter_by(
+                    team=reporting_team, question=q).first()
+
+                if log == None:
+                    error = f"Report unsuccessful. No transaction for answer = \"{answer}\" with team = {reported} found."
+                    return jsonify({'error': error})
+
+                time_diff = -1 if submited is not None and submited.token > log.token else 1
+
+                if time_diff < 0:
+                    error = f"Report unsuccessful. Cannot report once answer is submitted after transaction."
+                    return jsonify({'error': error})
+                else:
+                    reported_team = Team.query.filter_by(
+                        teamname=reported).first()
+                    transaction = Transactions.query.filter_by(
+                        sender=reporting_team, receiver=reported, question_number=q).first()
+
+                    if transaction == None:
+                        error = f"No transaction took place between your team and {reported}."
+                        return jsonify({"error": error})
+
+                    coins = transaction.amount
+                    db.session.add(Reportlog(reporter=reporting_team, imposter=reported, question=q, received_answer=answer, token=datetime.now(
+                        timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
+
+                    if answer != question.answer:
+                        current_user.coins += (.7 * coins)
+                        reported_team.coins -= (1.5 * coins)
+                        current_user.score += 50
+                        # reported_team.report_count += 1
+                        db.session.commit()
+                        message = f"Report successful. You have been awarded 50 points and a refund of 70% of the transaction value i.e {.7 * coins}"
+                        return jsonify({'message': message})
+                    else:
+                        if submited is not None:
+                            submited.answer = answer
+                            submited.check = 1
+                        else:
+                            db.session.add(Answer(team=reporting_team, question=q, answer=answer, check=1, token=datetime.now(
+                                timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
+                        db.session.commit()
+
+                        message = f"Report unsuccessful. The received answer was correct. You have not been awararded any points or coins and your answer for this question has been marked correct. You may sell this answer for coins."
+                        return jsonify({'message': message})
 
             except ValueError:
                 return jsonify({'error': 'Invalid question value!'})
@@ -129,6 +203,8 @@ def terminal():
             c = 0
             leaderboard = Team.query.order_by(Team.score.desc()).all()
             for i in leaderboard:
+                if leaderboard[c].teamname == 'admin@CCS':
+                    continue
                 dash = (25 - len(leaderboard[c].teamname)) * '-'
                 data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score}"
                 c += 1
@@ -148,7 +224,6 @@ def terminal():
 
             try:
                 num = int(question)
-                # TODO: check time also for future questions
                 q_check = Questions.query.filter_by(id=num).first()
 
                 if q_check == None:
@@ -181,6 +256,7 @@ def terminal():
             coins = request.form['amount']
             team2 = request.form['team2']
             team = Team.query.filter_by(teamname=team2).first()
+            q = request.form['q']
 
             if team == None:
                 return jsonify({'error': 'Team does not exists!'})
@@ -188,15 +264,40 @@ def terminal():
                 return jsonify({'error': 'Cannot send coins to self!'})
 
             try:
+                q = int(q)
+                question = Questions.query.filter_by(id=q).first()
+
+                if question == None:
+                    return jsonify({'error': 'Wrong question number!'})
+
+                transaction_check = Transactions.query.filter_by(
+                    sender=current_user.teamname, receiver=team2, question_number=q).first()
+                if transaction_check is not None:
+                    return jsonify({'error': 'Transaction limit reached. Cannot transact with the same team for the same question more than once.'})
+
                 if current_user.coins < int(coins):
                     return jsonify({'error': 'You dont have enough coins!'})
                 team.coins += int(coins)
                 current_user.coins -= int(coins)
-                transaction = Transactions(sender=current_user.teamname, amount=int(
+                transaction = Transactions(sender=current_user.teamname, question_number=q, amount=int(
                     coins), receiver=team2, token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata')))
                 db.session.add(transaction)
                 db.session.commit()
+
             except ValueError:
-                return jsonify({'error': 'Invalid coin value!'})
+                return jsonify({'error': 'Invalid coin or question value!'})
+
+        # Admin Commands
+        if request.form['command'] == 'iq':
+            if current_user.teamname == 'admin@CCS':
+                question = request.form['question']
+                answer = request.form['answer']
+                message = f"question: {question} \nanswer: {answer}"
+                db.session.add(Questions(question=question, answer=answer))
+                db.session.commit()
+                return jsonify({'message': message})
+            else:
+                message = f"Bohot tej ho rahe ho team {current_user.teamname}. Repetition of such act will lead to Disqualification."
+                return jsonify({'message': message})
 
     return render_template('terminal.html')

@@ -29,6 +29,8 @@ class Team(db.Model, UserMixin):
     coins = db.Column(db.Integer, default=10)
     score = db.Column(db.Integer, default=0)
     check = db.Column(db.Integer, default=0)
+    # report_count = db.Column(db.Integer, default=0)
+    # totalScore = db.Column(db.Integer, default=0)
     db.relationship('User', backref='team', lazy=True)
 
     def __repr__(self):
@@ -50,6 +52,7 @@ class Transactions(db.Model, UserMixin):
     amount = db.Column(db.Integer, default=0, nullable=False)
     receiver = db.Column(db.String(50), nullable=False)
     token = db.Column(db.DateTime, nullable=False)
+    question_number = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return f"Transaction('{self.sender}', '{self.amount}', '{self.receiver}')"

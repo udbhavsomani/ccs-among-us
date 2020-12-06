@@ -42,6 +42,7 @@ var configs = (function () {
         ganswer_help: "Used to send answer to other teams after deal",
         ranswer_help: "Shows all the answers that you have recieved from other teams",
         leaderboard_help: "Shows current leaderboard",
+        insert_question_help: "Admin only command",
         welcome: "Welcome to CodeSus! :)\nIn order for you to start customizing the texts, go to js/main.js and replace the texts located at the configs var.\nIn that same file, you can define all the fake files you want as well as their content. This files will appear on the sidenav.\nAlso, don't forget to change the colors on the css/main.css file as well as the website title on the index.html file.\nNow in order to get started, feel free to either execute the 'help' command or use the more user-friendly colored sidenav at your left.\nIn order to skip text rolling, double click/touch anywhere.",
         internet_explorer_warning: "NOTE: I see you're using internet explorer, this website won't work properly.",
         welcome_file_name: "welcome_message.txt",
@@ -139,6 +140,7 @@ var main = (function () {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        INSERT_QUESTION: { value: "insert_question", help: configs.getInstance().insert_question_help },
         SUBMIT_ANSWER: { value: "submit_answer", help: configs.getInstance().submit_answer_help },
         TRANSACTIONS: { value: "transactions", help: configs.getInstance().transactions_help },
         LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
@@ -413,6 +415,9 @@ var main = (function () {
             case cmds.SUBMIT_ANSWER.value:
                 this.submit_answer();
                 break;
+            case cmds.INSERT_QUESTION.value:
+                this.insert_question();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
         };
@@ -442,6 +447,30 @@ var main = (function () {
         this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
     }
 
+    Terminal.prototype.insert_question = function () {
+        var self = this;
+        let q, answer;
+        this.type("Enter Question: ", () => {
+            q = window.prompt("Enter Question");
+            this.type("Enter the answer: ", () => {
+                answer = window.prompt("Enter answer");
+                $.ajax({
+                    type: 'POST',
+                    url: '/terminal',
+                    data: { 'command': 'iq', 'question': q, 'answer': answer },
+                    success: function (data) {
+                        if (data.error != null) {
+                            self.type(data.error, self.unlock.bind(self));
+                        } else {
+                            self.type(data.message, self.unlock.bind(self));
+                        }
+                    },
+                    error: function () { }
+                });
+            });
+        });
+    }
+
     Terminal.prototype.submit_answer = function () {
         var self = this;
         let q_num, answer;
@@ -456,11 +485,11 @@ var main = (function () {
                     success: function (data) {
                         if (data.error != null) {
                             self.type(data.error, self.unlock.bind(self));
-                        } 
-                        else if (data.status != null){
+                        }
+                        else if (data.status != null) {
                             self.type(data.status + " answer! " + data.message, self.unlock.bind(self));
                         }
-                        else{
+                        else {
                             self.type(data.message, self.unlock.bind(self));
                         }
                     },
@@ -488,20 +517,23 @@ var main = (function () {
             var coins = window.prompt("Enter Coins");
             this.type("Enter Recieving Team's Name:", () => {
                 var teamName = window.prompt("Enter Team Name");
-                $.ajax({
-                    type: 'POST',
-                    url: '/terminal',
-                    data: { 'command': 'transact', 'amount': coins, 'team2': teamName },
-                    success: function (data) {
-                        if (data.error != null) {
-                            self.type(data.error, self.unlock.bind(self));
-                        } else {
-                            self.type("Sent " + coins + " coins to " + teamName, self.unlock.bind(self));
+                this.type("Enter question number:", () => {
+                    var q = window.prompt("Enter question number");
+                    $.ajax({
+                        type: 'POST',
+                        url: '/terminal',
+                        data: { 'command': 'transact', 'amount': coins, 'team2': teamName, 'q': q },
+                        success: function (data) {
+                            if (data.error != null) {
+                                self.type(data.error, self.unlock.bind(self));
+                            } else {
+                                self.type("Sent " + coins + " coins to " + teamName + " for question " + q, self.unlock.bind(self));
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
                         }
-                    },
-                    error: function (error) {
-                        console.log(error);
-                    }
+                    });
                 });
             });
         });
@@ -512,10 +544,25 @@ var main = (function () {
         this.type("Enter Team Name which you want to report:", () => {
             var teamName = window.prompt("Enter Team Name");
             this.type("Enter Question Number:", () => {
-                var questionNumber = window.prompt("Enter Question Number");
-                this.type("Enter the answer you recieved from the team", () => {
+                var question = window.prompt("Enter Question Number");
+                this.type("Enter the answer you recieved from the team: ", () => {
                     var answer = window.prompt("Enter answer");
-                    this.type(teamName + " reported for giving answer=\"" + answer + "\" for question number " + questionNumber, this.unlock.bind(this));
+                    $.ajax({
+                        type: 'POST',
+                        url: '/terminal',
+                        data: { 'command': 'report', 'team': teamName, 'answer': answer, 'q': question },
+                        success: function (data) {
+                            if (data.error != null) {
+                                self.type(data.error, self.unlock.bind(self));
+                            } else {
+                                self.type(data.message, self.unlock.bind(self));
+                            }
+                            
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
                 });
             });
         });
