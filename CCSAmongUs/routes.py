@@ -179,7 +179,7 @@ def terminal():
                         current_user.coins += (.7 * coins)
                         reported_team.coins -= (1.5 * coins)
                         current_user.score += 50
-                        # reported_team.report_count += 1
+                        reported_team.report_count += 1
                         db.session.commit()
                         message = f"Report successful. You have been awarded 50 points and a refund of 70% of the transaction value i.e {.7 * coins}"
                         return jsonify({'message': message})
@@ -202,12 +202,28 @@ def terminal():
             data = {}
             c = 0
             leaderboard = Team.query.order_by(Team.score.desc()).all()
-            for i in leaderboard:
-                if leaderboard[c].teamname == 'admin@CCS':
-                    continue
-                dash = (25 - len(leaderboard[c].teamname)) * '-'
-                data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score}"
-                c += 1
+            if current_user.teamname == 'admin@CCS':
+                for i in leaderboard:
+                    if i.teamname == 'admin@CCS':
+                        continue
+                    i.totalScore = (i.score * .6) + (i.coins * .4)
+                db.session.commit()
+                leaderboard = Team.query.order_by(Team.totalScore.desc()).all()
+                for i in leaderboard:
+                    if leaderboard[c].teamname == 'admin@CCS':
+                        continue
+                    dash = (28 - len(leaderboard[c].teamname)) * '-'
+                    dash2 = (10 - len(str(leaderboard[c].totalScore))) * '-'
+                    data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].totalScore} {dash2} {leaderboard[c].report_count}"
+                    c += 1
+            else:
+                for i in leaderboard:
+                    if leaderboard[c].teamname == 'admin@CCS':
+                        continue
+                    dash = (28 - len(leaderboard[c].teamname)) * '-'
+                    dash2 = (10 - len(str(leaderboard[c].score))) * '-'
+                    data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score} {dash2} {leaderboard[c].report_count}"
+                    c += 1
             return jsonify({'data': data})
 
         if request.form['command'] == 'send_answer':

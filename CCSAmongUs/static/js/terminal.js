@@ -703,12 +703,12 @@ var main = (function () {
             data: { 'command': 'show_leaderboard' },
             success: function (data) {
                 for (var x in data.data) {
-                    output += (`	${x}. ${data.data[x]} \n`);
+                    output += (`${x}-------${data.data[x]} \n`);
                 }
             },
             error: function () { }
         });
-        self.type("****** Current Leaderboard ******\n", () => {
+        self.type("****** Current Leaderboard ******\nRank----Team Name--------------------Score-----Reported\n", () => {
             this.type(output, self.unlock.bind(self));
         });
     }

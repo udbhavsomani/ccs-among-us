@@ -29,8 +29,8 @@ class Team(db.Model, UserMixin):
     coins = db.Column(db.Integer, default=10)
     score = db.Column(db.Integer, default=0)
     check = db.Column(db.Integer, default=0)
-    # report_count = db.Column(db.Integer, default=0)
-    # totalScore = db.Column(db.Integer, default=0)
+    report_count = db.Column(db.Integer, default=0)
+    totalScore = db.Column(db.Integer, default=0)
     db.relationship('User', backref='team', lazy=True)
 
     def __repr__(self):
