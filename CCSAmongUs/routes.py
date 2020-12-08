@@ -117,8 +117,9 @@ def terminal():
                 if q_check.answer == answer:
                     check = True
                     status = "Correct"
-                    message = "You got 100 points!"
+                    message = "You got 100 points and 100 coins!"
                     current_user.score += 100
+                    current_user.coins += 100
 
                 db.session.add(Answer(team=current_user.teamname, question=num, answer=answer, check=check,
                                       token=datetime.now(timezone('UTC')).astimezone(timezone('Asia/Kolkata'))))
@@ -225,6 +226,26 @@ def terminal():
                     data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score} {dash2} {leaderboard[c].report_count}"
                     c += 1
             return jsonify({'data': data})
+
+        if request.form['command'] == 'whs':
+            try:
+                num = int(request.form['q_num'])
+                data = {}
+                c = 0
+                leaderboard = Answer.query.filter_by(
+                    question=num, check=1).order_by(Answer.token).all()
+
+                if leaderboard == None:
+                    raise ValueError
+
+                for i in leaderboard:
+                    if leaderboard[c].team == 'admin@CCS':
+                        continue
+                    data[f"{c+1}"] = f"{leaderboard[c].team}"
+                    c += 1
+                return jsonify({'data': data})
+            except ValueError:
+                return jsonify({'error': 'Invalid Question number'})
 
         if request.form['command'] == 'send_answer':
             from_team = current_user.teamname

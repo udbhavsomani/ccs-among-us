@@ -1,5 +1,16 @@
 "use strict";
 
+var live_user = (function () {
+    var user = $.parseJSON($.ajax({
+        type: 'POST',
+        url: '/terminal',
+        data: { 'command': 'get_teamname' },
+        async: false,
+    }).responseText);
+
+    return user.user;
+})();
+
 /**
  * Configs
  */
@@ -30,7 +41,7 @@ var configs = (function () {
         rmdir_help: "Remove directory, this command will only work if the folders are empty.",
         touch_help: "Change file timestamps. If the file doesn't exist, it's created an empty one.",
         sudo_help: "Execute a command as the superuser.",
-        hoe_help: "You single",
+        whs_help: "Who Has Solved a particular question correctly.",
         coins_help: "Displays your wallet",
         send_help: "Used to send coins to another team",
         report_help: "Used to report another team if you think they are imposters",
@@ -93,10 +104,10 @@ var files = (function () {
         type: 'POST',
         url: '/terminal',
         async: false,
-        data: { 'command': 'show_question'},
+        data: { 'command': 'show_question' },
         success: function (data) {
             for (let x in data.data) {
-                let ques = "question" + x.toString() +".txt";
+                let ques = "question" + x.toString() + ".txt";
                 Singleton.defaultOptions[ques] = data.data[x];
             }
         },
@@ -148,6 +159,7 @@ var main = (function () {
     InvalidArgumentException.prototype.constructor = InvalidArgumentException;
 
     var cmds = {
+        WHS: { value: "whs", help: configs.getInstance().whs_help },
         AL: { value: "al", help: configs.getInstance().al_help },
         AT: { value: "at", help: configs.getInstance().at_help },
         INSERT_QUESTION: { value: "insert_question", help: configs.getInstance().insert_question_help },
@@ -192,17 +204,6 @@ var main = (function () {
         if (!(profilePic instanceof Node) || profilePic.nodeName.toUpperCase() !== "IMG") {
             throw new InvalidArgumentException("Invalid value " + profilePic + " for argument 'profilePic'.");
         }
-
-        var live_user = (function () {
-            var user = $.parseJSON($.ajax({
-                type: 'POST',
-                url: '/terminal',
-                data: { 'command': 'get_teamname' },
-                async: false,
-            }).responseText);
-
-            return user.user;
-        })();
 
         (typeof user === "string" && typeof host === "string") && (this.completePrompt = live_user + "@" + host + ":~" + (root ? "#" : "$"));
         this.profilePic = profilePic;
@@ -434,6 +435,9 @@ var main = (function () {
             case cmds.AL.value:
                 this.al();
                 break;
+            case cmds.WHS.value:
+                this.whs();
+                break;
             default:
                 this.invalidCommand(cmdComponents);
         };
@@ -465,7 +469,7 @@ var main = (function () {
 
     Terminal.prototype.al = function () {
         var self = this;
-        let teamname, output='';
+        let teamname, output = '';
         this.type("Enter teamname: ", () => {
             teamname = window.prompt("Enter teamname");
             $.ajax({
@@ -473,26 +477,24 @@ var main = (function () {
                 url: '/terminal',
                 data: { 'command': 'al', 'teamname': teamname },
                 success: function (data) {
-                if (data.error != null){
-                    self.type(data.error, self.unlock.bind(self));
-                }
-                else{
-                    for (let x in data.data) {
-                        output += (data.data[x] + '\n');
+                    if (data.error != null) {
+                        self.type(data.error, self.unlock.bind(self));
                     }
-                }
-            },
-            error: function () { }
-            });
-            self.type(configs.getInstance().transaction_message, () => {
-                this.type(output, self.unlock.bind(self));
+                    else {
+                        for (let x in data.data) {
+                            output += (data.data[x] + '\n');
+                        }
+                        self.type(output, self.unlock.bind(self));
+                    }
+                },
+                error: function () { }
             });
         });
     }
 
     Terminal.prototype.at = function () {
         var self = this;
-        let teamname, output='';
+        let teamname, output = '';
         this.type("Enter teamname: ", () => {
             teamname = window.prompt("Enter teamname");
             $.ajax({
@@ -500,19 +502,17 @@ var main = (function () {
                 url: '/terminal',
                 data: { 'command': 'at', 'teamname': teamname },
                 success: function (data) {
-                if (data.error != null){
-                    self.type(data.error, self.unlock.bind(self));
-                }
-                else{
-                    for (let x in data.data) {
-                        output += (data.data[x] + '\n');
+                    if (data.error != null) {
+                        self.type(data.error, self.unlock.bind(self));
                     }
-                }
-            },
-            error: function () { }
-            });
-            self.type(configs.getInstance().transaction_message, () => {
-                this.type(output, self.unlock.bind(self));
+                    else {
+                        for (let x in data.data) {
+                            output += (data.data[x] + '\n');
+                        }
+                        self.type(output, self.unlock.bind(self));
+                    }
+                },
+                error: function () { }
             });
         });
     }
@@ -579,6 +579,34 @@ var main = (function () {
                 self.type(configs.getInstance().coins_message + data.coins + " coins.", self.unlock.bind(self));
             }
         });
+    }
+
+    Terminal.prototype.whs = function () {
+        var self = this;
+        let output = "";
+        let q_num;
+        this.type("Enter the question number: ", () => {
+            q_num = window.prompt("Enter question number");
+            $.ajax({
+                type: 'POST',
+                url: '/terminal',
+                data: { 'command': 'whs', 'q_num': q_num },
+                success: function (data) {
+                    if (data.error == null) {
+                        for (var x in data.data) {
+                            output += (`${x}. ${data.data[x]} \n`);
+                        }
+                        self.type("Team Name: \n", () => {
+                            self.type(output, self.unlock.bind(self));
+                        });
+                    }
+                    else {
+                        self.type(data.error, self.unlock.bind(self));
+                    }
+                },
+                error: function () { }
+            });
+        })
     }
 
     Terminal.prototype.send = function () {
@@ -750,7 +778,7 @@ var main = (function () {
     }
 
     Terminal.prototype.whoami = function (cmdComponents) {
-        var result = configs.getInstance().username + ": " + configs.getInstance().user + "\n" + configs.getInstance().hostname + ": " + configs.getInstance().host + "\n" + configs.getInstance().platform + ": " + navigator.platform + "\n" + configs.getInstance().accesible_cores + ": " + navigator.hardwareConcurrency + "\n" + configs.getInstance().language + ": " + navigator.language;
+        var result = configs.getInstance().username + ": " + live_user + "\n" + configs.getInstance().hostname + ": " + configs.getInstance().host + "\n" + configs.getInstance().platform + ": " + navigator.platform + "\n" + configs.getInstance().accesible_cores + ": " + navigator.hardwareConcurrency + "\n" + configs.getInstance().language + ": " + navigator.language;
         this.type(result, this.unlock.bind(this));
     };
 
