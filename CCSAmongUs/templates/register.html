@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+
+{% block title %}
+<title>Register Team</title>
+{% endblock title %}
+
 {% block content %}
 
 	<form class="login100-form validate-form" method="POST">
@@ -8,7 +13,16 @@
 		</span>
 
 		<div class="wrap-input100 validate-input" data-validate = "Team Name is required">
-			{{ form.teamname(class="input100", placeholder=form.teamname.label.text)}}
+			{% if form.teamname.errors %}
+				{{ form.teamname(class="input100")}}
+					{% for error in form.teamname.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.teamname(class="input100", placeholder=form.teamname.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -16,7 +30,16 @@
 		</div>
 
 		<div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
-			{{ form.email(class="input100", placeholder=form.email.label.text)}}
+			{% if form.email.errors %}
+				{{ form.email(class="input100")}}
+					{% for error in form.email.errors %}
+						<script type="text/javascript">
+							window.alert( {{ error|tojson }} );
+						</script>
+					{% endfor %}
+			{% else %}
+				{{ form.email(class="input100", placeholder=form.email.label.text)}}
+			{% endif %}
 			<span class="focus-input100"></span>
 			<span class="symbol-input100">
 				<i class="fa fa-envelope" aria-hidden="true"></i>

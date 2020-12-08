@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Login V1</title>
+	{% block title %}{% endblock %}
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--===============================================================================================-->	
@@ -27,7 +27,7 @@
 		<div class="container-login100">
 			<div class="wrap-login100">
 				<div class="login100-pic js-tilt" data-tilt>
-					<img src="{{ url_for('static', filename='images/image1.jpg') }}" alt="IMG">
+					<img src="{{ url_for('static', filename='images/CodeSus.png') }}" alt="IMG">
 				</div>
 
 				{% block content %}{% endblock %}
