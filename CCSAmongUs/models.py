@@ -26,7 +26,7 @@ class Team(db.Model, UserMixin):
     teamname = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    coins = db.Column(db.Integer, default=10)
+    coins = db.Column(db.Integer, default=100)
     score = db.Column(db.Integer, default=0)
     check = db.Column(db.Integer, default=0)
     report_count = db.Column(db.Integer, default=0)
