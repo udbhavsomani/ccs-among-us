@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 
 TARGET_TIME = datetime.strptime(
-    "2020-12-5 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
+    "2020-12-13 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
 
 TARGET_TIME_UTC = TARGET_TIME.astimezone(tz=utc)
 
