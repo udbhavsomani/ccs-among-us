@@ -5,9 +5,7 @@ from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, An
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from pytz import timezone
-
-# TODO: ADMIN API
-
+from sqlalchemy.exc import IntegrityError
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
@@ -46,20 +44,23 @@ def memberRegister():
     if current_user.check:
         return redirect(url_for('terminal'))
     if form.validate_on_submit():
-        teamname = current_user.teamname
-        user1 = User(name=form.member1.data,
-                     rollnumber=form.rollnumber1.data, team=teamname)
-        user2 = User(name=form.member2.data,
-                     rollnumber=form.rollnumber2.data, team=teamname)
-        if form.member3.data and form.rollnumber3.data:
-            user3 = User(name=form.member3.data,
-                         rollnumber=form.rollnumber3.data, team=teamname)
-            db.session.add_all([user1, user2, user3])
-        else:
-            db.session.add_all([user1, user2])
-        current_user.check = 1
-        db.session.commit()
-        return redirect(url_for('terminal'))
+        try:
+            teamname = current_user.teamname
+            user1 = User(name=form.member1.data,
+                        rollnumber=form.rollnumber1.data, team=teamname)
+            user2 = User(name=form.member2.data,
+                        rollnumber=form.rollnumber2.data, team=teamname)
+            if form.member3.data and form.rollnumber3.data:
+                user3 = User(name=form.member3.data,
+                            rollnumber=form.rollnumber3.data, team=teamname)
+                db.session.add_all([user1, user2, user3])
+            else:
+                db.session.add_all([user1, user2])
+            current_user.check = 1
+            db.session.commit()
+            return redirect(url_for('terminal'))
+        except IntegrityError:
+            flash(" ")
     return render_template('memberRegister.html', form=form)
 
 
