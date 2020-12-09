@@ -110,6 +110,11 @@ def terminal():
         if request.form['command'] == 'get_coins':
             return jsonify({'coins': current_user.coins})
 
+        if request.form['command'] == 'team':
+            output=f"Team Name: {current_user.teamname}\nScore: {current_user.score}\nCoins: {current_user.coins}"
+            return jsonify({'data': output})
+        
+
         if request.form['command'] == 'logout':
             logout_user()
             return jsonify({'url': '/login'})

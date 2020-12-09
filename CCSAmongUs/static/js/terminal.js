@@ -43,10 +43,11 @@ var configs = (function() {
         sudo_help: "Execute a command as the superuser.",
         whs_help: "Who Has Solved a particular question correctly.",
         coins_help: "Displays your wallet",
+        team_help: "Displays team current info",
         send_help: "Used to send coins to another team",
         report_help: "Used to report another team if you think they are imposters",
-        ganswer_help: "Used to send answer to other teams after deal",
-        ranswer_help: "Shows all the answers that you have recieved from other teams",
+        give_answer_help: "Used to send answer to other teams after deal",
+        recieved_answers_help: "Shows all the answers that you have recieved from other teams",
         leaderboard_help: "Shows current leaderboard",
         insert_question_help: "Admin only command",
         at_help: "Admin only command",
@@ -168,10 +169,11 @@ var main = (function() {
         LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
         LS: { value: "ls", help: configs.getInstance().ls_help },
         COINS: { value: "coins", help: configs.getInstance().coins_help },
+        TEAM: { value: "team", help: configs.getInstance().team_help },
         SEND: { value: "send", help: configs.getInstance().send_help },
         REPORT: { value: "report", help: configs.getInstance().report_help },
-        GANSWER: { value: "ganswer", help: configs.getInstance().ganswer_help },
-        RANSWER: { value: "ranswer", help: configs.getInstance().ranswer_help },
+        GIVE_ANSWER: { value: "give_answer", help: configs.getInstance().give_answer_help },
+        RECIEVED_ANSWERS: { value: "recieved_answers", help: configs.getInstance().recieved_answers_help },
         LEADERBOARD: { value: "leaderboard", help: configs.getInstance().leaderboard_help },
         CAT: { value: "cat", help: configs.getInstance().cat_help },
         WHOAMI: { value: "whoami", help: configs.getInstance().whoami_help },
@@ -404,11 +406,11 @@ var main = (function() {
             case cmds.REPORT.value:
                 this.report();
                 break;
-            case cmds.GANSWER.value:
-                this.ganswer();
+            case cmds.GIVE_ANSWER.value:
+                this.give_answer();
                 break;
-            case cmds.RANSWER.value:
-                this.ranswer();
+            case cmds.RECIEVED_ANSWERS.value:
+                this.recieved_answers();
                 break;
             case cmds.LEADERBOARD.value:
                 this.leaderboard();
@@ -421,6 +423,9 @@ var main = (function() {
                 break;
             case cmds.SUBMIT_ANSWER.value:
                 this.submit_answer();
+                break;
+            case cmds.TEAM.value:
+                this.team();
                 break;
             case cmds.INSERT_QUESTION.value:
                 this.insert_question();
@@ -568,6 +573,17 @@ var main = (function() {
             }
         });
     }
+    Terminal.prototype.team = function() {
+        var self = this;
+        $.ajax({
+            type: 'POST',
+            url: '/terminal',
+            data: { 'command': 'team' },
+            success: function(data) {
+                self.type(data.data, self.unlock.bind(self));
+            }
+        });
+    }
 
     Terminal.prototype.whs = function() {
         var self = this;
@@ -653,7 +669,7 @@ var main = (function() {
         });
     }
 
-    Terminal.prototype.ganswer = function() {
+    Terminal.prototype.give_answer = function() {
         var self = this;
         this.type("Enter Team Name which you want to give answer to: ", () => {
             var teamName = window.prompt("Enter Team Name");
@@ -681,7 +697,7 @@ var main = (function() {
         });
     }
 
-    Terminal.prototype.ranswer = function() {
+    Terminal.prototype.recieved_answers = function() {
         var self = this;
         let output = "";
         let q_num;
