@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/CCSLOGO.png') }}" />
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='fonts/font-awesome-4.7.0/css/font-awesome.min.css') }}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/animate/animate.css') }}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='vendor/css-hamburgers/hamburgers.min.css') }}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/select2/select2.min.css') }}">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/util.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <!--===============================================================================================-->
+</head>
+
+<body>
+
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100">
+                <div style="float: left;" class="login100-pic js-tilt" data-tilt >
+                    <img src="{{ url_for('static', filename='images/CodeSus.png') }}" alt="IMG">
+                </div>
+                <div style="float: right; padding: 40px 0px 20px;">
+                    <p
+                        style="font-size: 2.5rem; color: turquoise; font-size: 2rem; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
+                        Event launches in...</p>
+                        <hr>
+                    <p id="time"
+                        style="font-size: 3rem; color:red; font-family: 'Times New Roman', Times, serif;">
+                    </p>
+
+                </div>
+            </div>   
+        </div>
+    </div>
+
+
+
+    <script type="text/javascript">
+        // Get the date we're counting down to
+        let countDownDate = new Date("{{ TIME_STRING_UTC }}").getTime();
+
+        // Update the count down every 1 second
+        let x = setInterval(function () {
+
+            // Get today's date and time
+            let now = Date.now();
+
+            // Find the time_diff between now and the count down date
+            let time_diff = countDownDate - now;
+
+            // Time calculations for days, hours, minutes and seconds
+            let days = Math.floor(time_diff / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((time_diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((time_diff % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((time_diff % (1000 * 60)) / 1000);
+
+            // Output the result
+            document.getElementById("time").innerHTML = days + "d " + hours + "h "
+                + minutes + "m " + seconds + "s ";
+
+            // If the count down is over, write some text
+            if (time_diff < 0) {
+                clearInterval(x);
+                document.getElementById("time").innerHTML = "LAUNCHING EVENT";
+            }
+        }, 500);
+    </script>
+    <!--===============================================================================================-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery-3.2.1.min.js') }}"></script>
+    <!--===============================================================================================-->
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/popper.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js') }}"></script>
+    <!--===============================================================================================-->
+    <script src="{{ url_for('static', filename='vendor/select2/select2.min.js') }}"></script>
+    <!--===============================================================================================-->
+    <script src="{{ url_for('static', filename='vendor/tilt/tilt.jquery.min.js') }}"></script>
+    <script>
+        $('.js-tilt').tilt({
+            scale: 1.1
+        })
+    </script>
+    <!--===============================================================================================-->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+
+</html>

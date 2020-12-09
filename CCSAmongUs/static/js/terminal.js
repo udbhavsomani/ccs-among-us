@@ -51,7 +51,7 @@ var configs = (function () {
         insert_question_help: "Admin only command",
         at_help: "Admin only command",
         al_help: "Admin only command",
-        welcome: "Welcome to CodeSus! :)\nIn order for you to start customizing the texts, go to js/main.js and replace the texts located at the configs var.\nIn that same file, you can define all the fake files you want as well as their content. This files will appear on the sidenav.\nAlso, don't forget to change the colors on the css/main.css file as well as the website title on the index.html file.\nNow in order to get started, feel free to either execute the 'help' command or use the more user-friendly colored sidenav at your left.\nIn order to skip text rolling, double click/touch anywhere.",
+        welcome: "Welcome to CodeSus! :)\nNow in order to get started, feel free to either execute the 'help' command or use the more user-friendly sidenav at your left.\nIn order to skip text rolling, double click/touch anywhere.",
         internet_explorer_warning: "NOTE: I see you're using internet explorer, this website won't work properly.",
         welcome_file_name: "welcome_message.txt",
         invalid_command_message: "<value>: command not found.",
@@ -61,7 +61,6 @@ var configs = (function () {
         coins_message: "You currently have ",
         logout_message: "Logging you out....!",
         transaction_message: "Your transactions: \n",
-        hoe_message: "Get a side hoe",
         usage: "Usage",
         file: "file",
         file_not_found: "File '<value>' not found.",
@@ -97,6 +96,7 @@ var files = (function () {
     };
     Singleton.defaultOptions = {
         "about.txt": "Some cliche Description of this event.",
+        "rulebook.txt": "Here are the rules and guidelines for the event:\n\n1.	CodeSus is a team event with minimum 2 and maximum 3 members.\n\n2.	It is an intra college event therefore the team should consist of only Thapar students.\n\n3.	The questions will be of simple coding, aptitude and CTF type.\n\n4.	The website has a terminal like interface. You can type the 'help' command to view the list of various other commands. \n\nFor example: To view the leaderboard, type “leaderboard” or to view which team has answered correctly, type “whs”.\n\n5.	A new question will appear after every 15 minutes on the side panel. A pop-up screen will appear where one member of your team has to submit the answer. Each correct answer fetches your team 100 points and 100 coins.\n\n6.	Both points and coins will be considered while evaluating the final scores.\n\n7.	Once a team has submitted the correct answer, it has the choice to trade its answer with another team for coins. It is up to you if you trade the correct answer or an incorrect one.\n\n8.	If the team purchasing the answer finds it suspicious, it can report the selling team BEFORE submitting an answer for that particular question. \n\n9.	If the report is successful, the reporting team will get 70% of their transaction value back (i.e. coins) and they will also get a bonus score of 50 points for a successful report. \n\n10.	The team which gets reported, 150% of the transaction value (i.e. coins) will be deducted.\n\n11.	If the report is unsuccessful (the answer received was correct but team was reported), the reporting team will not get any points for submitting that answer.\n\n12.	You can trade with a particular team only once for a particular question.\n\n13.	The entire event will be conducted on Airmeet where all the trading will take place.\n\n14.	Follow @ccs_tiet on Instagram for updates.\n\n15.	Join the CodeSus Discord server: https://discord.gg/GyBYpJcXJr",
         "getting_started.txt": "Type 'help'",
         "contact.txt": "ccs@thapar.edu",
     };
@@ -167,7 +167,6 @@ var main = (function () {
         TRANSACTIONS: { value: "transactions", help: configs.getInstance().transactions_help },
         LOGOUT: { value: "logout", help: configs.getInstance().logout_help },
         LS: { value: "ls", help: configs.getInstance().ls_help },
-        HOE: { value: "hoe", help: configs.getInstance().hoe_help },
         COINS: { value: "coins", help: configs.getInstance().coins_help },
         SEND: { value: "send", help: configs.getInstance().send_help },
         REPORT: { value: "report", help: configs.getInstance().report_help },
@@ -396,9 +395,6 @@ var main = (function () {
             case cmds.SUDO.value:
                 this.sudo();
                 break;
-            case cmds.HOE.value:
-                this.hoe();
-                break;
             case cmds.COINS.value:
                 this.coins();
                 break;
@@ -462,10 +458,6 @@ var main = (function () {
         }
         this.type(result.trim(), this.unlock.bind(this));
     };
-
-    Terminal.prototype.hoe = function () {
-        this.type(configs.getInstance().hoe_message, this.unlock.bind(this));
-    }
 
     Terminal.prototype.al = function () {
         var self = this;

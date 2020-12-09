@@ -4,12 +4,25 @@ from CCSAmongUs.forms import RegisterationForm, LoginForm, MemberRegisterForm
 from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, Answer, Reportlog
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
-from pytz import timezone
+from pytz import timezone, utc
 from sqlalchemy.exc import IntegrityError
+
+
+TARGET_TIME = datetime.strptime(
+    "2020-12-13 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
+
+TARGET_TIME_UTC = TARGET_TIME.astimezone(tz=utc)
+
+JS_TIME_STRING_UTC = datetime.strftime(
+    TARGET_TIME_UTC, "%Y-%m-%dT%H:%M:%S+00:00")
+
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    if datetime.now(tz=utc) < TARGET_TIME_UTC:
+        return redirect(url_for('preEvent'))
+
     if current_user.is_authenticated:
         return redirect(url_for('terminal'))
     form = LoginForm()
@@ -21,8 +34,18 @@ def login():
     return render_template('login.html', form=form)
 
 
+@app.route("/preEvent", methods=['GET', 'POST'])
+def preEvent():
+    if datetime.now(tz=utc) > TARGET_TIME_UTC:
+        return redirect(url_for('login'))
+    return render_template('preEvent.html', TIME_STRING_UTC=JS_TIME_STRING_UTC)
+
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    if datetime.now(tz=utc) < TARGET_TIME_UTC:
+        return redirect(url_for('preEvent'))
+
     if current_user.is_authenticated:
         return redirect(url_for('terminal'))
     form = RegisterationForm()
@@ -47,12 +70,12 @@ def memberRegister():
         try:
             teamname = current_user.teamname
             user1 = User(name=form.member1.data,
-                        rollnumber=form.rollnumber1.data, team=teamname)
+                         rollnumber=form.rollnumber1.data, team=teamname)
             user2 = User(name=form.member2.data,
-                        rollnumber=form.rollnumber2.data, team=teamname)
+                         rollnumber=form.rollnumber2.data, team=teamname)
             if form.member3.data and form.rollnumber3.data:
                 user3 = User(name=form.member3.data,
-                            rollnumber=form.rollnumber3.data, team=teamname)
+                             rollnumber=form.rollnumber3.data, team=teamname)
                 db.session.add_all([user1, user2, user3])
             else:
                 db.session.add_all([user1, user2])
