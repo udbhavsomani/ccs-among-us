@@ -59,7 +59,8 @@ class MemberRegisterForm(FlaskForm):
     rollnumber3 = StringField('Member 3 Roll No.')
 
     def validate_rollnumber3(self, rollnumber3):
-        user = User.query.filter_by(rollnumber=rollnumber3.data).first()
-        if user:
-            raise ValidationError('Member 3 is already registered.')
+        if rollnumber3.data != '':
+            user = User.query.filter_by(rollnumber=rollnumber3.data).first()
+            if user:
+                raise ValidationError('Member 3 is already registered.')
     submit = SubmitField('Register')
