@@ -5,13 +5,20 @@ from CCSAmongUs.models import Team, User, Questions, Transactions, Answerlog, An
 from flask_login import login_user, current_user, logout_user, login_required
 from datetime import datetime
 from pytz import timezone, utc
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError
+from dateutil import tz
+import psycopg2
 
 
 TARGET_TIME = datetime.strptime(
     "2020-12-13 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
 
 TARGET_TIME_UTC = TARGET_TIME.astimezone(tz=utc)
+
+LOCK_TIME = datetime.strptime(
+    "2020-12-13 18:00:10+0530", "%Y-%m-%d %H:%M:%S%z")
+
+LOCK_TIME_UTC = LOCK_TIME.astimezone(tz=utc)
 
 JS_TIME_STRING_UTC = datetime.strftime(
     TARGET_TIME_UTC, "%Y-%m-%dT%H:%M:%S+00:00")
@@ -45,6 +52,9 @@ def preEvent():
 def register():
     if datetime.now(tz=utc) < TARGET_TIME_UTC:
         return redirect(url_for('preEvent'))
+
+    if datetime.now(tz=utc) > LOCK_TIME_UTC:
+        return redirect(url_for('login'))
 
     if current_user.is_authenticated:
         return redirect(url_for('terminal'))
@@ -82,8 +92,9 @@ def memberRegister():
             current_user.check = 1
             db.session.commit()
             return redirect(url_for('terminal'))
-        except IntegrityError:
+        except (IntegrityError, DataError):
             flash(" ")
+
     return render_template('memberRegister.html', form=form)
 
 
@@ -99,8 +110,9 @@ def terminal():
             transactions_all += Transactions.query.filter_by(
                 receiver=current_user.teamname).all()
             for i in transactions_all:
+                time = transactions_all[c].token.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).strftime('%Y-%m-%d at %H:%M:%S')
                 data[
-                    f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                    f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {time}"
                 c += 1
             return jsonify({'data': data})
 
@@ -112,7 +124,10 @@ def terminal():
 
         if request.form['command'] == 'team':
             user = User.query.filter_by(team=current_user.teamname).all()
-            output=f"Team Name: {current_user.teamname}\nScore: {current_user.score}\nCoins: {current_user.coins}\nMember 1: {user[0].name}\nMember 2: {user[1].name}"
+            output=f"Team Name: {current_user.teamname}\nScore: {current_user.score}\nCoins: {current_user.coins}"
+            if len(user) > 0:
+                output += f"\nMember 1: {user[0].name}\nMember 2: {user[1].name}"
+
             if len(user) > 2:
                 output += f"\nMember 3: {user[2].name}"
             return jsonify({'data': output})
@@ -232,8 +247,7 @@ def terminal():
                 return jsonify({'error': 'Invalid question value!'})
 
         if request.form['command'] == 'show_leaderboard':
-            data = {}
-            c = 0
+            data = []
             leaderboard = Team.query.order_by(Team.score.desc()).all()
             if current_user.teamname == 'admin@CCS':
                 for i in leaderboard:
@@ -243,20 +257,19 @@ def terminal():
                 db.session.commit()
                 leaderboard = Team.query.order_by(Team.totalScore.desc()).all()
                 for i in leaderboard:
-                    if leaderboard[c].teamname == 'admin@CCS':
+                    if i.teamname == 'admin@CCS':
                         continue
-                    dash = (28 - len(leaderboard[c].teamname)) * '-'
-                    dash2 = (10 - len(str(leaderboard[c].totalScore))) * '-'
-                    data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].totalScore} {dash2} {leaderboard[c].report_count}"
-                    c += 1
+                    dash = (28 - len(i.teamname)) * '-'
+                    dash2 = (10 - len(str(i.totalScore))) * '-'
+                    data.append(f"{i.teamname} {dash} {i.totalScore} {dash2} {i.report_count}")
             else:
                 for i in leaderboard:
-                    if leaderboard[c].teamname == 'admin@CCS':
+                    if i.teamname == 'admin@CCS':
                         continue
-                    dash = (28 - len(leaderboard[c].teamname)) * '-'
-                    dash2 = (10 - len(str(leaderboard[c].score))) * '-'
-                    data[f"{c+1}"] = f"{leaderboard[c].teamname} {dash} {leaderboard[c].score} {dash2} {leaderboard[c].report_count}"
-                    c += 1
+                    dash = (28 - len(i.teamname)) * '-'
+                    dash2 = (10 - len(str(i.score))) * '-'
+                    data.append(f"{i.teamname} {dash} {i.score} {dash2} {i.report_count}")
+
             return jsonify({'data': data})
 
         if request.form['command'] == 'whs':
@@ -265,10 +278,7 @@ def terminal():
                 data = {}
                 c = 0
                 leaderboard = Answer.query.filter_by(
-                    question=num, check=1).order_by(Answer.token).all()
-
-                if leaderboard == None:
-                    raise ValueError
+                    question=num, check=True).order_by(Answer.token).all()
 
                 for i in leaderboard:
                     if leaderboard[c].team == 'admin@CCS':
@@ -313,8 +323,9 @@ def terminal():
                 answers = Answerlog.query.filter_by(
                     receiving_team=current_user.teamname, question=question).order_by(Answerlog.token.desc()).all()
                 for i in answers:
+                    time = answers[c].token.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).strftime('%Y-%m-%d at %H:%M:%S')
                     data[
-                        f"{c+1}"] = f"Received answer = \"{answers[c].answer}\" from {answers[c].giving_team} on {answers[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                        f"{c+1}"] = f"Received answer = \"{answers[c].answer}\" from {answers[c].giving_team} on {time}"
                     c += 1
                 return jsonify({'data': data})
 
@@ -335,6 +346,9 @@ def terminal():
             try:
                 q = int(q)
                 question = Questions.query.filter_by(id=q).first()
+
+                if int(coins) < 1:
+                    return jsonify({'error': 'Invalid coin value! Should be greater than 1'})
 
                 if question == None:
                     return jsonify({'error': 'Wrong question number!'})
@@ -366,7 +380,7 @@ def terminal():
                 db.session.commit()
                 return jsonify({'message': message})
             else:
-                message = f"Bohot tej ho rahe ho team {current_user.teamname}. Repetition of such act will lead to Disqualification."
+                message = f"Bohot tej ho rahe ho {current_user.teamname}? Repetition of such act will lead to Disqualification."
                 return jsonify({'message': message})
 
         if request.form['command'] == 'at':
@@ -379,12 +393,13 @@ def terminal():
                 transactions_all += Transactions.query.filter_by(
                     receiver=team).all()
                 for i in transactions_all:
+                    time = transactions_all[c].token.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).strftime('%Y-%m-%d at %H:%M:%S')
                     data[
-                        f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {transactions_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                        f"{c+1}"] = f"{transactions_all[c].sender} sent {transactions_all[c].amount} to {transactions_all[c].receiver}. Date: {time}"
                     c += 1
                 return jsonify({'data': data})
             else:
-                error = f"Mana kiya hai na admin commands use karne ke liye team {current_user.teamname}? Repetition of such act will lead to Disqualification."
+                error = f"Mana kiya hai na admin commands use karne ke liye {current_user.teamname}? Repetition of such act will lead to Disqualification."
                 return jsonify({'error': error})
 
         if request.form['command'] == 'al':
@@ -397,12 +412,13 @@ def terminal():
                 al_all += Answerlog.query.filter_by(
                     giving_team=team).all()
                 for i in al_all:
+                    time = al_all[c].token.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).strftime('%Y-%m-%d at %H:%M:%S')
                     data[
-                        f"{c+1}"] = f"{al_all[c].receiving_team} got {al_all[c].answer} from {al_all[c].giving_team}. Date: {al_all[c].token.strftime('%Y-%m-%d at %H:%M:%S')}"
+                        f"{c+1}"] = f"{al_all[c].receiving_team} got {al_all[c].answer} from {al_all[c].giving_team}. Date: {time}"
                     c += 1
                 return jsonify({'data': data})
             else:
-                error = f"Mana kiya hai na admin commands use karne ke liye team {current_user.teamname}? Repetition of such act will lead to Disqualification."
+                error = f"Mana kiya hai na admin commands use karne ke liye {current_user.teamname}? Repetition of such act will lead to Disqualification."
                 return jsonify({'error': error})
 
         if request.form['command'] == 'show_question':

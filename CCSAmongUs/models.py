@@ -13,8 +13,8 @@ def load_user(user_id):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     name = db.Column(db.String(40), nullable=False)
-    rollnumber = db.Column(db.Integer, nullable=False, unique=True)
-    team = db.Column(db.String(20), db.ForeignKey(
+    rollnumber = db.Column(db.String(20), nullable=False, unique=True)
+    team = db.Column(db.String(50), db.ForeignKey(
         'team.teamname'), nullable=False)
 
     def __repr__(self):

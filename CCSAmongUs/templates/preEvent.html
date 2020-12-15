@@ -20,6 +20,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/util.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
     <!--===============================================================================================-->
+    <title>CodeSus</title>
 </head>
 <style>
     .glitch {
@@ -274,6 +275,11 @@ skew to change the 'thickness' of the glitch.*/
             transform: skew(1deg);
         }
     }
+
+    .container-glitch {
+        width: 390px;
+        margin: auto;
+    }
 </style>
 
 <body>
@@ -284,12 +290,15 @@ skew to change the 'thickness' of the glitch.*/
                 <div style="float: left;" class="login100-pic js-tilt" data-tilt>
                     <img src="{{ url_for('static', filename='images/CodeSus.png') }}" alt="IMG">
                 </div>
-                <div style="float: right; padding: 40px 0px 20px;">
-                    <p style="font-size: 2.5rem; color: turquoise; font-size: 2rem; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
-                        Event launches in...</p>
-                    <hr>
-                    <p class="glitch" id="time">
-                    </p>
+                <div style="float: right; padding: 40px 0px 20px; text-align: center;">
+                    <div class="container-glitch">
+                        <p
+                            style="font-size: 2.5rem; color: turquoise; font-size: 2rem; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
+                            Event launches in...</p>
+                        <hr>
+                        <p class="glitch" id="time">
+                        </p>
+                    </div>
 
                 </div>
             </div>

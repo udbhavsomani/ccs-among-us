@@ -96,7 +96,7 @@ var files = (function() {
         }
     };
     Singleton.defaultOptions = {
-        "about.txt": "Some cliche Description of this event.",
+        "about.txt": "Attention everyone!\n\"𝐄𝐫𝐫𝐨𝐫 𝟒𝟎𝟒 - 𝐓𝐇𝟑𝐑𝟑 𝟏𝟓 𝟒 𝐁𝐔𝐆 𝟒𝐌𝟎𝐍𝐆 𝐔𝟓\"\nThere is an imposter among us and he has planted a bug.\n𝘈 𝘣𝘶𝘨 𝘸𝘦 𝘤𝘢𝘯’𝘵 𝘧𝘪𝘯𝘥,\n𝘠𝘰𝘶𝘳 𝘩𝘦𝘭𝘱 𝘸𝘰𝘶𝘭𝘥 𝘣𝘦 𝘴𝘰 𝘷𝘦𝘳𝘺 𝘬𝘪𝘯𝘥.\n𝘖𝘶𝘳 𝘴𝘦𝘢𝘳𝘤𝘩 𝘩𝘢𝘴 𝘣𝘦𝘤𝘰𝘮𝘦 𝘦𝘯𝘥𝘭𝘦𝘴𝘴,\n𝘞𝘪𝘵𝘩𝘰𝘶𝘵 𝘺𝘰𝘶 𝘸𝘦 𝘢𝘳𝘦 𝘩𝘦𝘭𝘱𝘭𝘦𝘴𝘴.\n𝘠𝘰𝘶 𝘮𝘢𝘺 𝘣𝘦 𝘵𝘩𝘦 𝘰𝘯𝘦,\n𝘞𝘩𝘰 𝘨𝘦𝘵𝘴 𝘵𝘩𝘦 𝘫𝘰𝘣 𝘥𝘰𝘯𝘦.\n𝘊𝘊𝘚 𝘣𝘳𝘪𝘯𝘨𝘴 𝘵𝘰 𝘺𝘰𝘶 𝘊𝘖𝘋𝘌𝘚𝘜𝘚,\n𝘈𝘯𝘥 𝘸𝘪𝘵𝘩 𝘪𝘵 𝘤𝘰𝘮𝘦𝘴 𝘢 𝘤𝘩𝘢𝘯𝘤𝘦 𝘵𝘰 𝘴𝘢𝘷𝘦 𝘶𝘴.\nSo guys,\nDo you have what it takes?\n'Cuz we have upped the stakes!\nNothing is as it seems to be. Pay attention, look around and trust no one!\nThe Game Is On!",
         "rulebook.txt": "Here are the rules and guidelines for the event:\n\n1.	CodeSus is a team event with minimum 2 and maximum 3 members.\n\n2.	It is an intra college event therefore the team should consist of only Thapar students.\n\n3.	The questions will be of simple coding, aptitude and CTF type.\n\n4.	The website has a terminal like interface. You can type the 'help' command to view the list of various other commands. \n\nFor example: To view the leaderboard, type “leaderboard” or to view which team has answered correctly, type “whs”.\n\n5.	A new question will appear after every 15 minutes on the side panel. A pop-up screen will appear where one member of your team has to submit the answer. Each correct answer fetches your team 100 points and 100 coins.\n\n6.	Both points and coins will be considered while evaluating the final scores.\n\n7.	Once a team has submitted the correct answer, it has the choice to trade its answer with another team for coins. It is up to you if you trade the correct answer or an incorrect one.\n\n8.	If the team purchasing the answer finds it suspicious, it can report the selling team BEFORE submitting an answer for that particular question. \n\n9.	If the report is successful, the reporting team will get 70% of their transaction value back (i.e. coins) and they will also get a bonus score of 50 points for a successful report. \n\n10.	The team which gets reported, 150% of the transaction value (i.e. coins) will be deducted.\n\n11.	If the report is unsuccessful (the answer received was correct but team was reported), the reporting team will not get any points for submitting that answer.\n\n12.	You can trade with a particular team only once for a particular question.\n\n13.	The entire event will be conducted on Airmeet where all the trading will take place.\n\n14.	Follow @ccs_tiet on Instagram for updates.\n\n15.	Join the CodeSus Discord server: https://discord.gg/GyBYpJcXJr",
         "getting_started.txt": "Type 'help'",
         "contact.txt": "ccs@thapar.edu",
@@ -732,8 +732,10 @@ var main = (function() {
             url: '/terminal',
             data: { 'command': 'show_leaderboard' },
             success: function(data) {
+                var x = 0;
                 for (var x in data.data) {
-                    output += (`${x}-------${data.data[x]} \n`);
+                    var y = Number(x) + 1;
+                    output += (`${y}-------${data.data[x]} \n`);
                 }
             },
             error: function() {}
@@ -774,6 +776,8 @@ var main = (function() {
             this.type(output, self.unlock.bind(self));
         });
     }
+
+    // OH, SO YOU DID CHECK HUH? GREAT! YOUR ANSWER IS this_#
 
     Terminal.prototype.sudo = function() {
         this.type(configs.getInstance().sudo_message, this.unlock.bind(this));
