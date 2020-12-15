@@ -11,7 +11,7 @@ import psycopg2
 
 
 TARGET_TIME = datetime.strptime(
-    "2020-12-13 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
+    "2020-11-13 17:00:00+0530", "%Y-%m-%d %H:%M:%S%z")
 
 TARGET_TIME_UTC = TARGET_TIME.astimezone(tz=utc)
 
@@ -127,7 +127,10 @@ def terminal():
             output=f"Team Name: {current_user.teamname}\nScore: {current_user.score}\nCoins: {current_user.coins}"
             if len(user) > 0:
                 output += f"\nMember 1: {user[0].name}\nMember 2: {user[1].name}"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 243e1829452497b95427a9f3eafef33ac6097040
             if len(user) > 2:
                 output += f"\nMember 3: {user[2].name}"
             return jsonify({'data': output})
