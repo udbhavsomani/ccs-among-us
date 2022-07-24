@@ -127,10 +127,7 @@ def terminal():
             output=f"Team Name: {current_user.teamname}\nScore: {current_user.score}\nCoins: {current_user.coins}"
             if len(user) > 0:
                 output += f"\nMember 1: {user[0].name}\nMember 2: {user[1].name}"
-<<<<<<< HEAD
 
-=======
->>>>>>> 243e1829452497b95427a9f3eafef33ac6097040
             if len(user) > 2:
                 output += f"\nMember 3: {user[2].name}"
             return jsonify({'data': output})
