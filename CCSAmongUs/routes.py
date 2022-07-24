@@ -53,8 +53,8 @@ def register():
     if datetime.now(tz=utc) < TARGET_TIME_UTC:
         return redirect(url_for('preEvent'))
 
-    if datetime.now(tz=utc) > LOCK_TIME_UTC:
-        return redirect(url_for('login'))
+    # if datetime.now(tz=utc) > LOCK_TIME_UTC:
+    #     return redirect(url_for('login'))
 
     if current_user.is_authenticated:
         return redirect(url_for('terminal'))
